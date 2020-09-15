@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-// DatabaseCofig 
+// DatabaseCofig configures the connection to a database
 type DatabaseConfig struct {
 
 }
