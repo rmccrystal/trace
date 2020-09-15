@@ -2,7 +2,7 @@ package models
 
 import "gorm.io/gorm"
 
-// DatabaseCofig configures the connection to a database
+// DatabaseConfig configures the connection to a database
 type DatabaseConfig struct {
 
 }
@@ -13,7 +13,7 @@ type Database struct {
 }
 
 // NewDatabase connects to the database using a DatabaseConfig
-func NewDatabase(config DatabaseConfig) *Database, error {
+func NewDatabase(config DatabaseConfig) (*Database, error) {
 	db, err := gorm.Open("test.db", &gorm.Config{})
 	if err != nil {
 		return nil, err
