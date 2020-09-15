@@ -1,4 +1,4 @@
-package models
+package database
 
 // A Location represents any location at the school that can be signed in or out
 type Location struct {
@@ -6,7 +6,7 @@ type Location struct {
 	Name string
 }
 
-// GetLocations returns all of the locations stored in the database
+// GetLocations returns all of the locations stored in the Database
 func (db *Database) GetLocations() []Location {
 	return nil
 }
