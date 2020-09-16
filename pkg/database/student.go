@@ -1,6 +1,8 @@
 package database
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // A Student represents one member of the school who can sign in and out of a location
 type Student struct {
@@ -13,6 +15,11 @@ type Student struct {
 }
 
 // GetStudents gets a list of all students stored in the Database
+// TODO
 func (db *Database) GetStudents() []Student {
 	return nil
 }
+
+//func (db *Database) GetStudentByStudentID() (Student, error) {
+//	db.collections.Students.FindOne(context.TODO(), bson.D{""})
+//}

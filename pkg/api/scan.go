@@ -14,6 +14,6 @@ func scanHandler(c *gin.Context) {
 	}{}
 
 	if err := c.BindJSON(&scanRequest); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, )
+		c.JSON(http.StatusUnprocessableEntity, Error(err))
 	}
 }

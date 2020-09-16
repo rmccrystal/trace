@@ -27,12 +27,27 @@ type Config struct {
 type Database struct {
 	Client   *mongo.Client
 	Database *mongo.Database
+	config   Config
 
 	collections struct {
-		Event    *mongo.Collection
-		Location *mongo.Collection
-		Student  *mongo.Collection
+		Events    *mongo.Collection
+		Locations *mongo.Collection
+		Students  *mongo.Collection
 	}
+}
+
+func newDatabase(client *mongo.Client, config Config) (Database, error) {
+	database := Database{Client: client, config: config}
+
+	// Create the mongo database
+	database.Database = client.Database(config.DatabaseName)
+
+	// Create the collections
+	database.collections.Events = database.Database.Collection("events")
+	database.collections.Locations = database.Database.Collection("locations")
+	database.collections.Students = database.Database.Collection("students")
+
+	return database, nil
 }
 
 // Connect connects to the Database using a DatabaseConfig.
@@ -55,11 +70,20 @@ func Connect(config Config) (*Database, error) {
 		return nil, fmt.Errorf("could not ping Database: %s", err)
 	}
 
-	database := client.Database(config.DatabaseName)
-
 	log.Info("Connected to Database")
 
-	DB = &Database{Client: client, Database: database}
+	// Create the database object
+	database, err := newDatabase(client, config)
+	if err != nil {
+		return nil, err
+	}
 
-	return DB, nil
+	// Warn if we already set the mongo
+	if DB != nil {
+		log.Errorf("Connected to the mongo while it was already connected. Continuing.")
+	}
+
+	DB = &database
+
+	return &database, nil
 }
