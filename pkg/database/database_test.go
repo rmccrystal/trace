@@ -64,32 +64,32 @@ func TestDatabase_GetMostRecentEvent(t *testing.T) {
 	logrus.Infof("Found most recent event for student with mongo ID %s: %v+", studentID, mostRecentEvent)
 }
 
-func TestDatabase_GetStudentByStudentID(t *testing.T) {
+func TestDatabase_GetStudentByHandle(t *testing.T) {
 	if TestDatabase == nil {
 		t.Skip("TestDatabase was nil")
 	}
 
 	// Add an example student for the test
 	student := Student{
-		Name:       "Ben Aaron",
-		Email:      "baaron@gmail.com",
-		StudentIDs: []string{"12345", "testid1"},
+		Name:           "Ben Aaron",
+		Email:          "baaron@gmail.com",
+		StudentHandles: []string{"12345", "testid1"},
 	}
 	if err := TestDatabase.CreateStudent(&student); err != nil {
 		t.Fatalf("Error adding student to the database: %s", err)
 	}
 
-	studentID := "12345"
-	foundStudent, found, err := TestDatabase.GetStudentByStudentID(studentID)
+	handle := "12345"
+	foundStudent, found, err := TestDatabase.GetStudentByHandle(handle)
 	if err != nil {
-		t.Fatalf("Error getting student by ID: %s", err)
+		t.Fatalf("Error getting student by handle: %s", err)
 	}
 	if !found {
-		t.Fatalf("Did not find any students by the student ID (%s)", student.ID)
+		t.Fatalf("Did not find any students by the handle (%s)", student.ID)
 	}
 	if foundStudent.ID != student.ID {
-		t.Fatalf("Found the wrong student by ID. ID should be %s, found %s", student.ID, foundStudent)
+		t.Fatalf("Found the wrong student by handle. ID should be %s, ID %s", student.ID, foundStudent.ID)
 	}
 
-	logrus.Infof("Found student %v+ using student ID %s", foundStudent, studentID)
+	logrus.Infof("Found student %v+ using handle %s", foundStudent, handle)
 }

@@ -9,14 +9,12 @@ import (
 
 // A Student represents one member of the school who can sign in and out of a location
 type Student struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name       string             `json:"name"`
-	Email      string             `json:"email"`
+	ID    primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name  string             `json:"name"`
+	Email string             `json:"email"`
 
-	// StudentIDs is the list of IDs that can be used to scan in and out of a location
-	// Make sure this is not confused with Student.ID which is the uuid of the student
-	// TODO: Make this name less similar to Student.ID
-	StudentIDs []string           `json:"student_ids"`
+	// StudentHandles is the list of IDs that can be used to scan in and out of a location
+	StudentHandles []string `json:"student_handles"`
 }
 
 // CreateStudent creates a student and adds it to the database. The
@@ -47,11 +45,11 @@ func (db *Database) GetStudents() ([]Student, error) {
 	return students, nil
 }
 
-// GetStudentByStudentID gets a student by the StudentIDs member. If the
+// GetStudentByHandle gets a student by the StudentHandles member. If the
 // student is found, found will be true. If there is an error getting the student,
 // it will be returned. Not that this error will not contain the not found error
-func (db *Database) GetStudentByStudentID(studentID string) (student Student, found bool, err error) {
-	result := db.Collections.Students.FindOne(context.TODO(), bson.M{"studentids": bson.M{"$elemMatch": bson.M{"$eq": studentID}}})
+func (db *Database) GetStudentByHandle(handle string) (student Student, found bool, err error) {
+	result := db.Collections.Students.FindOne(context.TODO(), bson.M{"studentids": bson.M{"$elemMatch": bson.M{"$eq": handle}}})
 
 	err = result.Err()
 	if err != nil {
@@ -61,7 +59,7 @@ func (db *Database) GetStudentByStudentID(studentID string) (student Student, fo
 		}
 		return Student{}, false, err
 	}
-	
+
 	if err := result.Decode(&student); err != nil {
 		return Student{}, false, err
 	}
