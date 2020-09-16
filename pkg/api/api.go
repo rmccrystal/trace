@@ -19,7 +19,7 @@ func Listen(addr string, config *Config) error {
 
 	api := r.Group("/api/v1")
 
-	api.POST("scan", controllers.scanHandler)
+	api.POST("scan", controllers.OnScan)
 
 	return r.Run(addr)
 }

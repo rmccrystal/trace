@@ -3,6 +3,7 @@ package trace
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 	"trace/pkg/database"
 )
@@ -14,7 +15,8 @@ import (
 // error will be returned as a userError. If there is an error accessing the database
 // or any other unexpected error, it will be returned in err
 func HandleScan(locationID string, studentHandle string) (ev database.Event, userError error, err error) {
-	location, found, err := database.DB.GetLocationByID(locationID)
+	locationObjectID, _ := primitive.ObjectIDFromHex(locationID)
+	location, found, err := database.DB.GetLocationByID(locationObjectID)
 	if err != nil {
 		return database.Event{}, nil, err
 	}
@@ -30,7 +32,7 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 		return database.Event{}, fmt.Errorf("student with handle %s was not found", studentHandle), nil
 	}
 
-	studentAtLocation, err := IsStudentAtLocation(student.ID, location.ID)
+	studentAtLocation, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
 	if err != nil {
 		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s", student.Name, location.Name)
 	}

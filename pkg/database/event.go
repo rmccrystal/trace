@@ -71,12 +71,21 @@ func (db *Database) GetEvents() ([]Event, error) {
 // GetMostRecentEvent gets the most recent event created by the specified studentID
 // If the event is found, it will be returned, otherwise, found will be false.
 // If there is an error getting the most recent event, it will be returned
-func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Event, found bool, error error) {
-	result := db.Collections.Events.FindOne(context.TODO(), bson.D{{"studentid", studentID}}, &options.FindOneOptions{
+func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Event, found bool, err error) {
+	return db.GetMostRecentEventBetween(studentID, time.Unix(0, 0), time.Now())
+}
+
+// GetMostRecentEventBetween gets the most recent event between two time intervals
+func (db *Database) GetMostRecentEventBetween(studentID primitive.ObjectID, minTime time.Time, maxTime time.Time) (event Event, found bool, err error) {
+	result := db.Collections.Events.FindOne(context.TODO(), bson.D{
+		{"studentid", studentID},
+		{"time", bson.M{"$lt": maxTime}},
+		{"time", bson.M{"$gt": minTime}},
+	}, &options.FindOneOptions{
 		Sort: bson.D{{"time", -1}},
 	})
 
-	err := result.Err()
+	err = result.Err()
 	// If the event was not found
 	if err == mongo.ErrNoDocuments {
 		return Event{}, false, nil
