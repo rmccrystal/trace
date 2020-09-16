@@ -5,11 +5,20 @@ import (
 	"time"
 )
 
+// EventType determines the type of an event
 type EventType int32
 
 const (
-	EventEnter = iota
-	EventLeave
+	EventEnter = iota // When a student enters a location
+	EventLeave        // When a student leaves a location
+)
+
+// EventSource is where an event came from
+type EventSource int32
+
+const (
+	EventSourceScan      = iota // When a student scans in our out of a location
+	EventSourceAutoLeave        // When a student leaves the library by not singing out for a period of time
 )
 
 // An Event represents a student either entering or leaving a location
@@ -19,14 +28,5 @@ type Event struct {
 	StudentID  primitive.ObjectID `json:"student_id"`
 	Time       time.Time          `json:"time"`
 	EventType  EventType          `json:"event_type"`
-}
-
-// GetEvents gets all of the events in the Database
-func (db *Database) GetEvents() []Event {
-	return nil
-}
-
-// NewEvent creates an event and saves it to the Database
-func (db *Database) NewEvent(location Location) *Event {
-	return nil
+	Source     EventSource		  `json:"source"`
 }

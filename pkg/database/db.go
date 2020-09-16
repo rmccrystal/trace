@@ -1,3 +1,4 @@
+// database contains functions to interact with the stored contact tracing data
 package database
 
 import (
@@ -34,7 +35,8 @@ type Database struct {
 	}
 }
 
-// Connect connects to the Database using a DatabaseConfig
+// Connect connects to the Database using a DatabaseConfig.
+// If successful, the global DB object will be set.
 func Connect(config Config) (*Database, error) {
 	// Set the Client options
 	clientOptions := options.Client().ApplyURI(config.MongoURI)
