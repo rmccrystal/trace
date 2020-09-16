@@ -49,7 +49,7 @@ func (db *Database) GetStudents() ([]Student, error) {
 // student is found, found will be true. If there is an error getting the student,
 // it will be returned. Not that this error will not contain the not found error
 func (db *Database) GetStudentByHandle(handle string) (student Student, found bool, err error) {
-	result := db.Collections.Students.FindOne(context.TODO(), bson.M{"studentids": bson.M{"$elemMatch": bson.M{"$eq": handle}}})
+	result := db.Collections.Students.FindOne(context.TODO(), bson.M{"studenthandles": bson.M{"$elemMatch": bson.M{"$eq": handle}}})
 
 	err = result.Err()
 	if err != nil {
