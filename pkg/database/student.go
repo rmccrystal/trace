@@ -14,6 +14,8 @@ type Student struct {
 	Email      string             `json:"email"`
 
 	// StudentIDs is the list of IDs that can be used to scan in and out of a location
+	// Make sure this is not confused with Student.ID which is the uuid of the student
+	// TODO: Make this name less similar to Student.ID
 	StudentIDs []string           `json:"student_ids"`
 }
 
