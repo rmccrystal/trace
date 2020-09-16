@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"trace/pkg/controllers"
 	"trace/pkg/database"
 )
 
@@ -18,7 +19,7 @@ func Listen(addr string, config *Config) error {
 
 	api := r.Group("/api/v1")
 
-	api.POST("scan", scanHandler)
+	api.POST("scan", controllers.scanHandler)
 
 	return r.Run(addr)
 }
