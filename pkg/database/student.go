@@ -61,7 +61,7 @@ func (db *Database) GetStudentByHandle(handle string) (student Student, found bo
 	}
 
 	if err := result.Decode(&student); err != nil {
-		return Student{}, false, err
+		return Student{}, true, err
 	}
 
 	found = true

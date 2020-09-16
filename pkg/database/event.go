@@ -85,7 +85,7 @@ func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Even
 	}
 
 	if err := result.Decode(&event); err != nil {
-		return Event{}, false, fmt.Errorf("error decoding event: %s", err)
+		return Event{}, true, fmt.Errorf("error decoding event: %s", err)
 	}
 
 	return event, true, nil
