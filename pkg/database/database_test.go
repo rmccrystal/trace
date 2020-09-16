@@ -85,7 +85,7 @@ func TestDatabase_GetStudentByHandle(t *testing.T) {
 		t.Fatalf("Error getting student by handle: %s", err)
 	}
 	if !found {
-		t.Fatalf("Did not find any students by the handle (%s)", student.ID)
+		t.Fatalf("Did not find any students by the handle %s", handle)
 	}
 	if foundStudent.ID != student.ID {
 		t.Fatalf("Found the wrong student by handle. ID should be %s, ID %s", student.ID, foundStudent.ID)

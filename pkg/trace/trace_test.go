@@ -26,5 +26,7 @@ func init()  {
 }
 
 func TestHandleScan(t *testing.T) {
-	
+	if TestDatabase == nil {
+		t.Skip("database not initialized")
+	}
 }
