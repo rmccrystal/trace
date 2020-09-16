@@ -29,7 +29,7 @@ type Database struct {
 	Database *mongo.Database
 	config   Config
 
-	collections struct {
+	Collections struct {
 		Events    *mongo.Collection
 		Locations *mongo.Collection
 		Students  *mongo.Collection
@@ -42,10 +42,10 @@ func newDatabase(client *mongo.Client, config Config) (Database, error) {
 	// Create the mongo database
 	database.Database = client.Database(config.DatabaseName)
 
-	// Create the collections
-	database.collections.Events = database.Database.Collection("events")
-	database.collections.Locations = database.Database.Collection("locations")
-	database.collections.Students = database.Database.Collection("students")
+	// Create the Collections
+	database.Collections.Events = database.Database.Collection("events")
+	database.Collections.Locations = database.Database.Collection("locations")
+	database.Collections.Students = database.Database.Collection("students")
 
 	return database, nil
 }

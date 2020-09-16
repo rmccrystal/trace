@@ -2,8 +2,10 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
@@ -37,7 +39,7 @@ type Event struct {
 // CreateEvent creates an event and adds it to the database. The
 // ID element of the Event will be set if it is successful
 func (db *Database) CreateEvent(event *Event) error {
-	result, err := db.collections.Events.InsertOne(context.TODO(), event)
+	result, err := db.Collections.Events.InsertOne(context.TODO(), event)
 	if err != nil {
 		return err
 	}
@@ -50,7 +52,7 @@ func (db *Database) CreateEvent(event *Event) error {
 // GetEvents returns a list of all events stored in the database.
 // It will return an ordered list with the most recent first.
 func (db *Database) GetEvents() ([]Event, error) {
-	cur, err := db.collections.Events.Find(context.TODO(), bson.D{}, &options.FindOptions{
+	cur, err := db.Collections.Events.Find(context.TODO(), bson.D{}, &options.FindOptions{
 		// Sort by date
 		Sort: bson.D{{"time", -1}},
 	})
@@ -64,4 +66,27 @@ func (db *Database) GetEvents() ([]Event, error) {
 	}
 
 	return events, nil
+}
+
+// GetMostRecentEvent gets the most recent event created by the specified studentID
+// If the event is found, it will be returned, otherwise, found will be false.
+// If there is an error getting the most recent event, it will be returned
+func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Event, found bool, error error) {
+	result := db.Collections.Events.FindOne(context.TODO(), bson.D{{"studentid", studentID}}, &options.FindOneOptions{
+		Sort: bson.D{{"time", -1}},
+	})
+
+	err := result.Err()
+	// If the event was not found
+	if err == mongo.ErrNoDocuments {
+		return Event{}, false, nil
+	} else if err != nil { // If there was another error
+		return Event{}, false, fmt.Errorf("could not get most recent event: %s", err)
+	}
+
+	if err := result.Decode(&event); err != nil {
+		return Event{}, false, fmt.Errorf("error decoding event: %s", err)
+	}
+
+	return event, true, nil
 }

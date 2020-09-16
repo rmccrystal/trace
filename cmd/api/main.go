@@ -35,6 +35,7 @@ func main() {
 	}
 	logrus.Infoln(db.GetEvents())
 
+
 	if err := api.Listen(addr, &config); err != nil {
 		logrus.Fatalf("Failed to listen on %s: %s", addr, err)
 	}
