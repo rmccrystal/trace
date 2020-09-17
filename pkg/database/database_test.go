@@ -3,6 +3,7 @@ package database
 import (
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
 	"testing"
 	"time"
 )
@@ -12,8 +13,15 @@ var TestDatabase *Database
 func TestConnect(t *testing.T) {
 	var err error
 
+	// Get the mongo URI from env var
+	mongoURI, found := os.LookupEnv("TEST_MONGO_URI")
+	// Set it to localhost by default
+	if !found {
+		mongoURI = "mongodb://localhost"
+	}
+
 	TestDatabase, err = Connect(Config{
-		MongoURI:     "mongodb://localhost",
+		MongoURI:     mongoURI,
 		DatabaseName: "tests",
 	})
 
@@ -33,11 +41,11 @@ func TestDatabase_GetMostRecentEvent(t *testing.T) {
 
 	studentID, _ := primitive.ObjectIDFromHex("000000000000000000000001")
 	event1 := Event{
-		Time: time.Now(),
+		Time:      time.Now(),
 		StudentID: studentID,
 	}
 	event2 := Event{
-		Time: time.Now().Add(-5 * time.Second),
+		Time:      time.Now().Add(-5 * time.Second),
 		StudentID: studentID,
 	}
 

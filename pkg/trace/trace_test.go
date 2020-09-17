@@ -2,6 +2,7 @@ package trace
 
 import (
 	"github.com/sirupsen/logrus"
+	"os"
 	"testing"
 	"time"
 	"trace/pkg/database"
@@ -17,8 +18,15 @@ func init() {
 
 	var err error
 
+	// Get the mongo URI from env var
+	mongoURI, found := os.LookupEnv("TEST_MONGO_URI")
+	// Set it to localhost by default
+	if !found {
+		mongoURI = "mongodb://localhost"
+	}
+
 	TestDatabase, err = database.Connect(database.Config{
-		MongoURI:     "mongodb://localhost",
+		MongoURI:     mongoURI,
 		DatabaseName: "tests",
 	})
 
@@ -42,7 +50,7 @@ func init() {
 	}
 
 	TestLocation = &database.Location{
-		Name: "Library",
+		Name:    "Library",
 		Timeout: 1 * time.Hour,
 	}
 	if err := TestDatabase.CreateLocation(TestLocation); err != nil {
@@ -147,7 +155,7 @@ func TestIsStudentAtLocationAtTime(t *testing.T) {
 	logrus.Debugf("Created enter event: %v+", enterEvent)
 
 	// Check if students were at a location an hour ago
-	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1 * time.Hour))
+	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1*time.Hour))
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -187,7 +195,7 @@ func TestGetStudentsAtLocation(t *testing.T) {
 	logrus.Infof("Found list of students at location %s: %v+", TestLocation.Name, studentsAtLocation)
 
 	// Check if there are students at the location 5 hours ago. There should be none
-	studentsAtLocation, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5 * time.Hour))
+	studentsAtLocation, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5*time.Hour))
 	if err != nil {
 		t.Fatalf("Error getting students at location: %s", err)
 	}

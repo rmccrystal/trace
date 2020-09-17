@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 	"trace/pkg/database"
@@ -25,8 +26,15 @@ func init() {
 
 	var err error
 
+	// Get the mongo URI from env var
+	mongoURI, found := os.LookupEnv("TEST_MONGO_URI")
+	// Set it to localhost by default
+	if !found {
+		mongoURI = "mongodb://localhost"
+	}
+
 	TestDatabase, err = database.Connect(database.Config{
-		MongoURI:     "mongodb://localhost",
+		MongoURI:     mongoURI,
 		DatabaseName: "tests",
 	})
 
