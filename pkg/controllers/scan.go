@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"trace/pkg/api"
 	"trace/pkg/trace"
 )
 
@@ -18,7 +17,7 @@ func OnScan(c *gin.Context) {
 	}{}
 
 	if err := c.BindJSON(&scanRequest); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, api.Error(err))
+		c.JSON(http.StatusUnprocessableEntity, Error(err))
 		return
 	}
 
@@ -29,15 +28,15 @@ func OnScan(c *gin.Context) {
 	event, userError, err := trace.HandleScan(scanRequest.LocationID, scanRequest.StudentHandle)
 	if err != nil {
 		log.Errorf("Internal error handling scan: %s", err)
-		c.JSON(http.StatusInternalServerError, api.Error(fmt.Errorf("internal server error: %s", err)))
+		c.JSON(http.StatusInternalServerError, Error(fmt.Errorf("internal server error: %s", err)))
 		return
 	}
 	if userError != nil {
 		log.Warnf("User error handling scan: %s", userError)
-		c.JSON(http.StatusUnprocessableEntity, api.Error(userError))
+		c.JSON(http.StatusUnprocessableEntity, Error(userError))
 		return
 	}
 
-	c.JSON(http.StatusCreated, api.Success(event))
+	c.JSON(http.StatusCreated, Success(event))
 	return
 }

@@ -1,4 +1,4 @@
-package api
+package controllers
 
 // This file contains standardized responses depending on the success of a request
 // If a request is successful
