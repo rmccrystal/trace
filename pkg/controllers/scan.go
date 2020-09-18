@@ -8,7 +8,7 @@ import (
 	"trace/pkg/trace"
 )
 
-// /api/v1/scan
+// POST /api/v1/scan
 // Called whenever someone scans their barcode
 func OnScan(c *gin.Context) {
 	scanRequest := struct {
@@ -17,8 +17,14 @@ func OnScan(c *gin.Context) {
 	}{}
 
 	if err := c.BindJSON(&scanRequest); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, Error(err))
+		c.JSON(http.StatusUnprocessableEntity, Errorf("failed to parse request: %s", err))
 		return
+	}
+	if scanRequest.StudentHandle == "" {
+		c.JSON(http.StatusUnprocessableEntity, Errorf("no student handle specified"))
+	}
+	if scanRequest.LocationID == "" {
+		c.JSON(http.StatusUnprocessableEntity, Errorf("no location specified"))
 	}
 
 	log := logrus.WithFields(logrus.Fields{

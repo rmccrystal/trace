@@ -1,5 +1,7 @@
 package controllers
 
+import "fmt"
+
 // This file contains standardized responses depending on the success of a request
 // If a request is successful
 
@@ -35,4 +37,9 @@ func Error(error error) interface{} {
 		Success: false,
 		Error:   error.Error(),
 	}
+}
+
+// Errorf return the same thing as Error except it formats the arguments
+func Errorf(format string, args ...interface{}) interface{} {
+	return Error(fmt.Errorf(format, args...))
 }
