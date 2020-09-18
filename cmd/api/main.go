@@ -20,21 +20,10 @@ func main() {
 	}
 
 	// we're using the global database
-	db, err := database.Connect(config.DatabaseConfig)
+	_, err := database.Connect(config.DatabaseConfig)
 	if err != nil {
 		logrus.Fatalf("Could not connect to database: %s", err)
 	}
-
-	event := database.Event{
-		Time:       time.Now(),
-		EventType:  database.EventEnter,
-		Source:     database.EventSourceScan,
-	}
-	if err := db.CreateEvent(&event); err != nil {
-		logrus.Fatalf(err.Error())
-	}
-	logrus.Infoln(db.GetEvents())
-
 
 	if err := api.Listen(addr, &config); err != nil {
 		logrus.Fatalf("Failed to listen on %s: %s", addr, err)
