@@ -85,20 +85,19 @@ func sendTestRequest(handler func(ctx *gin.Context), json []byte) (code int, bod
 }
 
 func TestOnScan(t *testing.T) {
-	// I haven't ran this test yet because my docker isn't working on my PC for some reason
-	// TODO: Run this test
 	code, resp := sendTestRequest(OnScan, []byte(fmt.Sprintf(`
 {
 	"student_handle": "testhandle",
 	"location_id": "%s"
 }`, TestLocation.ID.Hex())))
 
-	assert.Equal(t, code, 200)
+	assert.Equal(t, 201, code)
 
 	var createdEvent database.Event
 	assert.NoError(t, json.Unmarshal(resp, &createdEvent), "failed to unmarshal response")
 
-	mostRecentEvent, found, _ := TestDatabase.GetMostRecentEvent(TestStudent.ID)
+	mostRecentEvent, found, err := TestDatabase.GetMostRecentEvent(TestStudent.ID)
+	assert.NoError(t, err, "error getting most recent event")
 	assert.Truef(t, found, "no event was created")
 	assert.Equalf(t, mostRecentEvent.ID, createdEvent.ID, "the returned event id %s did not match the most recent event id %s", createdEvent.ID, mostRecentEvent.ID)
 	assert.Equal(t, createdEvent.EventType, database.EventEnter, "incorrect event type %s was created", createdEvent.EventType)
