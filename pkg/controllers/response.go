@@ -1,45 +1,50 @@
 package controllers
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 // This file contains standardized responses depending on the success of a request
 // If a request is successful
 
 // Success should be called whenever a successful response needs to be sent.
-// It will return an interface{} which, when serialized, will turn into the following JSON:
+// It will abort and reply with the following JSON:
 // {
 //   "success": true,
 //   "data" <data>
 // }
 // If the data is nil, it will be omitted from the JSON
-func Success(data interface{}) interface{} {
-	return struct{
+func Success(c *gin.Context, code int, data interface{}) {
+	json := struct{
 		Success bool        `json:"success"`
 		Data    interface{} `json:"data,omitempty"`
 	}{
 		Success: true,
 		Data:    data,
 	}
+	c.AbortWithStatusJSON(code, json)
 }
 
 // Error should be called when a request fails and an unsuccessful status must be
-// sent back to the client. It will return an interface which will serialize into:
+// sent back to the client. It will abort the request and send a json response:
 // {
 //   "success": false,
 //   "error" <error>
 // }
 // If the error is nil, the error element will be omitted from the JSON
-func Error(error error) interface{} {
-	return struct {
+func Error(c *gin.Context, code int, error error) {
+	json := struct {
 		Success bool   `json:"success"`
 		Error   string `json:"error,omitempty"`
 	}{
 		Success: false,
 		Error:   error.Error(),
 	}
+	c.AbortWithStatusJSON(code, json)
 }
 
 // Errorf return the same thing as Error except it formats the arguments
-func Errorf(format string, args ...interface{}) interface{} {
-	return Error(fmt.Errorf(format, args...))
+func Errorf(c *gin.Context, code int, format string, args ...interface{}) {
+	Error(c, code, fmt.Errorf(format, args...))
 }

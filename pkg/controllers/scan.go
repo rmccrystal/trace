@@ -17,14 +17,16 @@ func OnScan(c *gin.Context) {
 	}{}
 
 	if err := c.BindJSON(&scanRequest); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, Errorf("failed to parse request: %s", err))
+		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
 		return
 	}
 	if scanRequest.StudentHandle == "" {
-		c.JSON(http.StatusUnprocessableEntity, Errorf("no student handle specified"))
+		Errorf(c, http.StatusUnprocessableEntity, "no student handle specified")
+		return
 	}
 	if scanRequest.LocationID == "" {
-		c.JSON(http.StatusUnprocessableEntity, Errorf("no location specified"))
+		Errorf(c, http.StatusUnprocessableEntity, "no location specified")
+		return
 	}
 
 	log := logrus.WithFields(logrus.Fields{
@@ -34,15 +36,14 @@ func OnScan(c *gin.Context) {
 	event, userError, err := trace.HandleScan(scanRequest.LocationID, scanRequest.StudentHandle)
 	if err != nil {
 		log.Errorf("Internal error handling scan: %s", err)
-		c.JSON(http.StatusInternalServerError, Error(fmt.Errorf("internal server error: %s", err)))
+		Errorf(c, http.StatusInternalServerError, "internal server error: %s", err)
 		return
 	}
 	if userError != nil {
 		log.Warnf("User error handling scan: %s", userError)
-		c.JSON(http.StatusUnprocessableEntity, Error(userError))
+		Errorf(c, http.StatusUnprocessableEntity, "%s", userError)
 		return
 	}
 
-	c.JSON(http.StatusCreated, Success(event))
-	return
+	Success(c, http.StatusCreated, event)
 }
