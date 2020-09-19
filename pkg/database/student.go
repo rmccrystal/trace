@@ -37,7 +37,7 @@ func (db *Database) GetStudents() ([]Student, error) {
 		return nil, err
 	}
 
-	var students []Student
+	students := make([]Student, 0)
 	if err := cur.All(context.TODO(), &students); err != nil {
 		return nil, err
 	}

@@ -60,7 +60,7 @@ func (db *Database) GetEvents() ([]Event, error) {
 		return nil, err
 	}
 
-	var events []Event
+	events := make([]Event, 0)
 	if err := cur.All(context.TODO(), &events); err != nil {
 		return nil, err
 	}

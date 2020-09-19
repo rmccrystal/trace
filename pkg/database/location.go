@@ -63,7 +63,7 @@ func (db *Database) GetLocations() ([]Location, error) {
 		return nil, err
 	}
 
-	var locations []Location
+	locations := make([]Location, 0)
 	if err := cur.All(context.TODO(), &locations); err != nil {
 		return nil, err
 	}

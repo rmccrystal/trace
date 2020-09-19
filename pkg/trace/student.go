@@ -44,7 +44,7 @@ func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.Obje
 func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]database.Student, error) {
 	// iterate through all students and check if each one is at the location
 
-	var studentsAtLocation []database.Student
+	studentsAtLocation := make([]database.Student, 0)
 
 	location, found, err := database.DB.GetLocationByID(locationID)
 	if err != nil {
