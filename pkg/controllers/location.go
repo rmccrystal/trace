@@ -54,6 +54,7 @@ func GetLocationByID(c *gin.Context) {
 	}
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+		return
 	}
 
 	Success(c, http.StatusOK, location)
@@ -73,6 +74,7 @@ func DeleteLocation(c *gin.Context) {
 	}
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
+		return
 	}
 
 	Success(c, http.StatusOK, nil)
@@ -99,6 +101,7 @@ func UpdateLocation(c *gin.Context) {
 	}
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
+		return
 	}
 
 	Success(c, http.StatusOK, location)

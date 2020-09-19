@@ -45,6 +45,58 @@ func (db *Database) GetStudents() ([]Student, error) {
 	return students, nil
 }
 
+// GetStudentByID gets a student by their ID. If not found, found will be false and
+// err will be nil. If there is an error retrieving the student, it will be returned
+func (db *Database) GetStudentByID(id primitive.ObjectID) (student Student, found bool, err error) {
+	result := db.Collections.Students.FindOne(nil, bson.M{"_id": id})
+
+	err = result.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Student{}, false, nil
+		}
+		return Student{}, false, err
+	}
+
+	if err := result.Decode(&student); err != nil {
+		return Student{}, true, err
+	}
+
+	found = true
+	return
+}
+
+// DeleteStudent deletes a student from the database by ID. If the student could not be
+// found, success will be false but err will be nil.
+func (db *Database) DeleteStudent(id primitive.ObjectID) (success bool, err error) {
+	result := db.Collections.Students.FindOneAndDelete(nil, bson.M{"_id": id})
+
+	err = result.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// UpdateStudent finds a student by its ID and updates it
+func (db *Database) UpdateStudent(id primitive.ObjectID, newStudent *Student) (success bool, err error) {
+	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": newStudent})
+	err = result.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+
+	err = result.Decode(newStudent)
+	success = true
+	return
+}
+
 // GetStudentByHandle gets a student by the StudentHandles member. If the
 // student is found, found will be true. If there is an error getting the student,
 // it will be returned. Not that this error will not contain the not found error

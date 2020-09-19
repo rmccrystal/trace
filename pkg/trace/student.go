@@ -71,3 +71,40 @@ func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]dat
 
 	return studentsAtLocation, nil
 }
+
+// GetStudentLocation returns the location a student is at. If the student is not at any location,
+// found will be false.
+func GetStudentLocation(studentID primitive.ObjectID, time time.Time) (location database.Location, found bool, err error) {
+	student, found, err := database.DB.GetStudentByID(studentID)
+	if err != nil {
+		return database.Location{}, false, err
+	}
+	if !found {
+		return database.Location{}, false, fmt.Errorf("could not find student with id %s", studentID.Hex())
+	}
+
+	lastEvent, found, err := database.DB.GetMostRecentEvent(studentID)
+	if err != nil {
+		return database.Location{}, false, fmt.Errorf("error getting most recent event: %s", err)
+	}
+	if !found {
+		// If there is no most recent event for this student, we can assume they are not at a location
+		return database.Location{}, false, nil
+	}
+
+	location, found, err = database.DB.GetLocationByID(lastEvent.ID)
+	if err != nil {
+		return database.Location{}, false, fmt.Errorf("error getting location: %s", err)
+	}
+	if !found {
+		return database.Location{}, false, fmt.Errorf("could not find location refrenced in student id %s", student.ID)
+	}
+
+	// check lastEvent time
+	if lastEvent.Time.Add(location.Timeout).Before(time) {
+		return database.Location{}, false, nil
+	}
+
+	found = true
+	return
+}
