@@ -36,8 +36,13 @@ func Success(c *gin.Context, code int, data interface{}) {
 // If the error is nil, the error element will be omitted from the JSON.
 // The first letter of error will automatically be capitalized
 func Error(c *gin.Context, code int, error error) {
-	formattedErr := []rune(error.Error())
-	formattedErr[0] = unicode.ToUpper(formattedErr[0])
+	var formattedErr string
+	if error.Error() != "" {
+		formattedErr := []rune(error.Error())
+		formattedErr[0] = unicode.ToUpper(formattedErr[0])
+	} else {
+		formattedErr = ""
+	}
 
 	json := struct {
 		Success bool   `json:"success"`
