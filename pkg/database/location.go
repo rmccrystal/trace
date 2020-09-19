@@ -58,7 +58,7 @@ func (db *Database) GetLocationByID(id primitive.ObjectID) (location Location, f
 
 // GetLocations returns a list of all locations stored in the database.
 func (db *Database) GetLocations() ([]Location, error) {
-	cur, err := db.Collections.Events.Find(context.TODO(), bson.D{})
+	cur, err := db.Collections.Locations.Find(context.TODO(), bson.D{})
 	if err != nil {
 		return nil, err
 	}
