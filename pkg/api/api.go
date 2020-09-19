@@ -17,11 +17,11 @@ func Listen(addr string, config *Config) error {
 
 	r := gin.Default()
 
-	api := r.Group("/api/v1")
+	api := r.Group("/api")
 
 	api.POST("scan", controllers.OnScan)
 
-	api.POST("location/create", controllers.CreateLocation)
+	api.POST("location", controllers.CreateLocation)
 	api.GET("location", controllers.GetLocations)
 	api.GET("location/:id", controllers.GetLocationByID)
 	api.DELETE("location/:id", controllers.DeleteLocation)
