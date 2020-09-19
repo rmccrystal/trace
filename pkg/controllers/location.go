@@ -27,6 +27,7 @@ func CreateLocation(c *gin.Context) {
 
 	if location.Name == "" {
 		Errorf(c, http.StatusUnprocessableEntity, "no location name specified")
+		return
 	}
 
 	err = database.DB.CreateLocation(&location)
