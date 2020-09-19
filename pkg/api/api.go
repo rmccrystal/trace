@@ -24,6 +24,7 @@ func Listen(addr string, config *Config) error {
 	api.POST("location", controllers.CreateLocation)
 	api.GET("location", controllers.GetLocations)
 	api.GET("location/:id", controllers.GetLocationByID)
+	api.GET("location/:id/students", controllers.GetStudentsAtLocation)
 	api.DELETE("location/:id", controllers.DeleteLocation)
 	api.PATCH("location/:id", controllers.UpdateLocation)
 

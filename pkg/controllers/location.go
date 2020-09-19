@@ -4,7 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"time"
 	"trace/pkg/database"
+	"trace/pkg/trace"
 )
 
 func GetLocations(c *gin.Context) {
@@ -76,7 +78,7 @@ func DeleteLocation(c *gin.Context) {
 	Success(c, http.StatusOK, nil)
 }
 
-func UpdateLocation(c *gin.Context)  {
+func UpdateLocation(c *gin.Context) {
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
@@ -100,4 +102,26 @@ func UpdateLocation(c *gin.Context)  {
 	}
 
 	Success(c, http.StatusOK, location)
+}
+
+func GetStudentsAtLocation(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+		return
+	}
+
+	// use current time by default
+	json := struct {
+		Time time.Time `json:"time"`
+	}{time.Now()}
+	_ = c.BindJSON(&json)
+
+	students, err := trace.GetStudentsAtLocation(id, json.Time)
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
+		return
+	}
+
+	Success(c, http.StatusOK, students)
 }
