@@ -88,7 +88,7 @@ func (db *Database) DeleteLocation(id primitive.ObjectID) (success bool, err err
 
 // UpdateLocation finds a location by its ID and updates it
 func (db *Database) UpdateLocation(id primitive.ObjectID, newLocation *Location) (success bool, err error) {
-	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, newLocation)
+	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": newLocation})
 	err = result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -96,5 +96,8 @@ func (db *Database) UpdateLocation(id primitive.ObjectID, newLocation *Location)
 		}
 		return false, err
 	}
-	return true, nil
+
+	err = result.Decode(newLocation)
+	success = true
+	return
 }
