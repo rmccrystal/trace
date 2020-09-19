@@ -70,3 +70,31 @@ func (db *Database) GetLocations() ([]Location, error) {
 
 	return locations, nil
 }
+
+// DeleteLocation deletes a location from the database by ID. If the location could not be
+// found, success will be false but err will be nil.
+func (db *Database) DeleteLocation(id primitive.ObjectID) (success bool, err error) {
+	result := db.Collections.Locations.FindOneAndDelete(nil, bson.M{"_id": id})
+
+	err = result.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// UpdateLocation finds a location by its ID and updates it
+func (db *Database) UpdateLocation(id primitive.ObjectID, newLocation *Location) (success bool, err error) {
+	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, newLocation)
+	err = result.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

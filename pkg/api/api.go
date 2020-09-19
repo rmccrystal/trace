@@ -21,5 +21,11 @@ func Listen(addr string, config *Config) error {
 
 	api.POST("scan", controllers.OnScan)
 
+	api.POST("location/create", controllers.CreateLocation)
+	api.GET("location", controllers.GetLocations)
+	api.GET("location/:id", controllers.GetLocationByID)
+	api.DELETE("location/:id", controllers.DeleteLocation)
+	api.PATCH("location/:id", controllers.UpdateLocation)
+
 	return r.Run(addr)
 }
