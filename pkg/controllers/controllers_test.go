@@ -85,6 +85,7 @@ func sendTestRequest(handler func(ctx *gin.Context), json []byte) (code int, bod
 }
 
 func TestOnScan(t *testing.T) {
+	// TODO: this doesn't pass
 	code, resp := sendTestRequest(OnScan, []byte(fmt.Sprintf(`
 {
 	"student_handle": "testhandle",
