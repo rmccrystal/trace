@@ -38,8 +38,9 @@ func Success(c *gin.Context, code int, data interface{}) {
 func Error(c *gin.Context, code int, error error) {
 	var formattedErr string
 	if error.Error() != "" {
-		formattedErr := []rune(error.Error())
-		formattedErr[0] = unicode.ToUpper(formattedErr[0])
+		runeErr := []rune(error.Error())
+		runeErr[0] = unicode.ToUpper(runeErr[0])
+		formattedErr = string(runeErr)
 	} else {
 		formattedErr = ""
 	}
