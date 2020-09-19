@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"unicode"
 )
 
 // This file contains standardized responses depending on the success of a request
@@ -32,14 +33,18 @@ func Success(c *gin.Context, code int, data interface{}) {
 //   "success": false,
 //   "error" <error>
 // }
-// If the error is nil, the error element will be omitted from the JSON
+// If the error is nil, the error element will be omitted from the JSON.
+// The first letter of error will automatically be capitalized
 func Error(c *gin.Context, code int, error error) {
+	formattedErr := []rune(error.Error())
+	formattedErr[0] = unicode.ToUpper(formattedErr[0])
+
 	json := struct {
 		Success bool   `json:"success"`
 		Error   string `json:"error,omitempty"`
 	}{
 		Success: false,
-		Error:   error.Error(),
+		Error:   string(formattedErr),
 	}
 	c.AbortWithStatusJSON(code, json)
 }
