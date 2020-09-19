@@ -24,7 +24,7 @@ func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.Obje
 		return false, err
 	}
 
-	if found {
+	if found && lastEvent.LocationID == locationID {
 		switch lastEvent.EventType {
 		case database.EventLeave:
 			return false, nil
