@@ -37,6 +37,8 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s", student.Name, location.Name)
 	}
 
+	// TODO: Create a logout event when someone logs in again to a new location
+
 	var eventType database.EventType
 	// If the student is in the location, they are leaving, otherwise they are entering
 	if studentAtLocation {
