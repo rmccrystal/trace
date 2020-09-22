@@ -1,6 +1,6 @@
 import React from 'react';
 import './app.scss';
-import Scan from "./components/scan";
+import Scan from './components/scan';
 
 function App() {
   return (
