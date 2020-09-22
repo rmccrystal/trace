@@ -1,10 +1,11 @@
 import React from 'react';
 import './app.scss';
+import Scan from "./components/scan";
 
 function App() {
   return (
     <div className="app">
-      <p>hello world</p>
+      <Scan />
     </div>
   );
 }
