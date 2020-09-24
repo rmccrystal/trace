@@ -49,15 +49,14 @@ export default function Scan() {
     if (state === "form" || state === "loading") {
         contentElem = <>
             <h1 className="bp3-heading">Please scan badge to sign into the {location.name}</h1>
-            <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the current
-                proctor
+            <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the proctor
+                on duty.
             </div>
             <FormGroup
                 label="Badge ID"
                 helperText="After you scan your badge, this form will submit automatically">
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
-                            id="student-handle-input"
-                            leftIcon={"align-justify"}
+                            id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false}
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
             </FormGroup>

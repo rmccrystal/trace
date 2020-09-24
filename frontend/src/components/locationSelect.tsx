@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import * as Api from "../api";
 import {onCatch} from "./util";
 import {ItemPredicate, ItemRenderer, ItemsEqualComparator, Select} from "@blueprintjs/select";
 import {Button, MenuItem, Navbar} from "@blueprintjs/core";
+import {create} from "domain";
 
 const LocationSelectElem = Select.ofType<Api.Location>();
 
@@ -26,6 +27,8 @@ export default function LocationSelect({onSelect}: { onSelect: (location: Api.Lo
         itemRenderer={renderLocation}
         itemPredicate={filterLocation}
         itemsEqual={areLocationsEqual}
+        activeItem={activeLocation}
+        createNewItemRenderer={renderCreateLocationOption}
         onItemSelect={setActiveLocation}
         noResults={<MenuItem disabled={true} text="No results." />}
         className={"bp3-focus-disabled"}
@@ -38,15 +41,40 @@ export default function LocationSelect({onSelect}: { onSelect: (location: Api.Lo
     </LocationSelectElem>
 }
 
+// We have to use a generator for this so we can update the location list
+function createLocationGenerator(setLocations: Dispatch<SetStateAction<Api.Location[]>>): (name: string) => Api.Location {
+    return name => {
+        const newLocation = {name: "test", id: "hello", timeout: 1};
+        setLocations(prevState => [...prevState, newLocation]);
+        return newLocation
+    }
+}
+
 const renderLocation: ItemRenderer<Api.Location> = (location, { handleClick, modifiers, query }) => {
     return (
         <MenuItem
             key={location.id}
             onClick={handleClick}
             text={highlightText(location.name, query)}
+            active={modifiers.active}
+            disabled={modifiers.disabled}
         />
     );
 }
+
+export const renderCreateLocationOption = (
+    query: string,
+    active: boolean,
+    handleClick: React.MouseEventHandler<HTMLElement>,
+) => (
+    <MenuItem
+        icon="add"
+        text={`Create "${query}"`}
+        active={active}
+        onClick={handleClick}
+        shouldDismissPopover={false}
+    />
+);
 
 const areLocationsEqual: ItemsEqualComparator<Api.Location> = ((itemA, itemB) => {
     return itemA.id === itemB.id
