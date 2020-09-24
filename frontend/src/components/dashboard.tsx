@@ -1,13 +1,14 @@
 import React, {useEffect, useState} from "react";
 import {Button, Card, HTMLTable, Spinner} from "@blueprintjs/core";
-import {getStudentsAtLocation, Student} from "../api";
+import {getStudentsAtLocation, Student, TraceEvent} from "../api";
 import {useGlobalState} from "../app";
-import {onCatch} from "./util";
+import {formatAMPM, onCatch} from "./util";
+import moment from "moment";
 
 // todo: preserve state while changing the page back
 export default function Dashboard() {
     let [loading, setLoading] = useState(true);
-    let [students, setStudents] = useState<Student[]>([]);
+    let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
     let [location] = useGlobalState('location')
 
@@ -24,7 +25,26 @@ export default function Dashboard() {
             .catch(onCatch)
     }, [location]);
 
-    if(loading) {
+    // TODO: Use websockets or something for this?
+    useEffect(() => {
+        if (!location) {
+            return
+        }
+        let intervalID = setInterval(() => {
+            if (!location) {
+                return
+            }
+            getStudentsAtLocation(location.id)
+                .then(st => {
+                    setStudents(st);
+                })
+                .catch(onCatch)
+        }, 1000);
+
+        return () => clearInterval(intervalID)
+    }, [location])
+
+    if (loading) {
         return <Spinner className="mt-10"/>
     }
 
@@ -32,14 +52,16 @@ export default function Dashboard() {
         <h1 className="bp3-heading text-center">Currently in {location?.name} ({students.length})</h1>
         <HTMLTable condensed striped className="w-full">
             <thead>
-                <th>Name</th>
-                <th>Time Elapsed</th>
-                {/*<th>Log Out</th>*/}
+            <th>Name</th>
+            <th>Time in</th>
+            <th>Time Elapsed</th>
+            {/*<th>Log Out</th>*/}
             </thead>
             <tbody>
-            {students.map(student => <tr>
-                <td style={{verticalAlign: "middle"}}>{student.name}</td>
-                <td style={{verticalAlign: "middle"}}>1 hour</td>
+            {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1).map(student => <tr>
+                <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
+                <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
+                <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
                 <td><Button icon="delete" className="float-right" minimal text={`Log out`}/></td>
             </tr>)}
             </tbody>

@@ -56,6 +56,10 @@ export interface Student {
     student_handles: string[]
 }
 
-export async function getStudentsAtLocation(location_id: string): Promise<Student[]> {
-    return await sendApiRequest<Student[]>("GET", `location/${location_id}/students`);
+export async function getStudentsAtLocation(location_id: string): Promise<{student: Student, event: TraceEvent}[]> {
+    let data = await sendApiRequest<{student: Student, event: TraceEvent}[]>("GET", `location/${location_id}/students`);
+    data.map((st) => {
+        st.event.time = new Date(st.event.time);
+    });
+    return data;
 }

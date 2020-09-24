@@ -32,7 +32,7 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 		return database.Event{}, fmt.Errorf("student with handle %s was not found", studentHandle), nil
 	}
 
-	studentAtLocation, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
+	studentAtLocation, _, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
 	if err != nil {
 		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s", student.Name, location.Name)
 	}

@@ -107,7 +107,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		t.Fatalf("Error creating enterEvent: %s", err)
 	}
 
-	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
+	studentAtLocation, _, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -127,7 +127,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		t.Fatalf("Error creating leaveEvent: %s", err)
 	}
 
-	studentAtLocation, err = IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
+	studentAtLocation, _, err = IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -155,7 +155,7 @@ func TestIsStudentAtLocationAtTime(t *testing.T) {
 	logrus.Debugf("Created enter event: %v+", enterEvent)
 
 	// Check if students were at a location an hour ago
-	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1*time.Hour))
+	studentAtLocation, _, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1*time.Hour))
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -185,7 +185,7 @@ func TestGetStudentsAtLocation(t *testing.T) {
 	}
 	logrus.Debugf("Student %s entered %s", TestStudent.Name, TestLocation.Name)
 
-	studentsAtLocation, err := GetStudentsAtLocation(TestLocation.ID, time.Now())
+	studentsAtLocation, _, err := GetStudentsAtLocation(TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error getting students at location: %s", err)
 	}
@@ -195,7 +195,7 @@ func TestGetStudentsAtLocation(t *testing.T) {
 	logrus.Infof("Found list of students at location %s: %v+", TestLocation.Name, studentsAtLocation)
 
 	// Check if there are students at the location 5 hours ago. There should be none
-	studentsAtLocation, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5*time.Hour))
+	studentsAtLocation, _, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5*time.Hour))
 	if err != nil {
 		t.Fatalf("Error getting students at location: %s", err)
 	}

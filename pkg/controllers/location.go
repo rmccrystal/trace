@@ -120,11 +120,25 @@ func GetStudentsAtLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.ShouldBindJSON(&json)
 
-	students, err := trace.GetStudentsAtLocation(id, json.Time)
+	students, events, err := trace.GetStudentsAtLocation(id, json.Time)
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
 		return
 	}
 
-	Success(c, http.StatusOK, students)
+	/* Create a json response formatted as:
+	[{
+		"student": (student),
+		"event": (event)
+	}]
+	 */
+	var resp []map[string]interface{}
+	for i := range students {
+		resp = append(resp, map[string]interface{}{
+			"student": students[i],
+			"event": events[i],
+		})
+	}
+
+	Success(c, http.StatusOK, resp)
 }
