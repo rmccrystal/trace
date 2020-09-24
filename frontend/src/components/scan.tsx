@@ -1,23 +1,37 @@
 import React, {useState} from 'react';
 import './scan.scss';
-import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
+import {Button, Card, FormGroup, InputGroup} from "@blueprintjs/core";
+import {EventType, scan, TraceEvent} from "../api";
+import {onCatch} from "./util";
 
 // An input that accepts data from the barcode scanner and sends it to the server
 export default function Scan() {
     let [locationName, setLocationName] = useState('Library');
     let [state, setState] = useState<"form" | "submitted" | "loading">("form");
+    let [event, setEvent] = useState<TraceEvent | null>(null);
+
+    let [handle, setHandle] = useState("");
+    const handleChange = (e: any) => {
+        setHandle(e.target.value);
+    }
 
     const submit = () => {
         setState("loading");
-        setTimeout(() => {
-            setState("submitted");
-            setTimeout(() => {
-                setState("form")
-            }, 3000);
-        }, 1000)
+        scan(handle, "5f658215319b49a857b35831")
+            .then((ev) => {
+                setEvent(ev);
+                setState("submitted");
+                setTimeout(() => {
+                    setState("form")
+                }, 3000);
+            })
+            .catch((e: any) => {
+                onCatch(e);
+                setState("form");
+            })
     }
 
-    const onBadgeInputKeyDown = (e: any) => {
+    const handleKeyDown = (e: any) => {
         if (e.key === "Enter") {
             submit();
         }
@@ -34,13 +48,14 @@ export default function Scan() {
             <FormGroup
                 label="Badge ID"
                 helperText="After you scan your badge, this form will submit automatically">
-                <InputGroup large onKeyDown={onBadgeInputKeyDown} placeholder="" leftIcon={"align-justify"}
+                <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
+                            leftIcon={"align-justify"}
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
             </FormGroup>
         </>;
     } else if (state === "submitted") {
-        contentElem = <Submitted locationName={"Library"} studentName={"Ryan McCrystal"} loginTime={new Date()}/>
+        contentElem = <Submitted event={event!}/>
     }
 
 
@@ -52,10 +67,12 @@ export default function Scan() {
 }
 
 // Displayed when a student scans
-function Submitted({locationName, loginTime, studentName}: { locationName: string, studentName: string, loginTime: Date }) {
+function Submitted({event}: { event: TraceEvent }) {
+    const {event_type, location_name, student_name, time} = event;
     return <div>
-        <h1 className="bp3-heading text-5xl">Hello <b>{studentName}</b>! You are currently checking out of
-            the <b>{locationName}</b>.</h1> <br/>
+        <h1 className="bp3-heading text-5xl">Hello <b>{student_name}</b>! You are currently
+            checking <b>{event_type === EventType.Enter ? "in to " : "out of "}</b>
+            the <b>{location_name}</b>.</h1> <br/>
         <p className="bp3-text-large bp3-text-muted text-xl">If this is not you, please see the proctor on duty</p>
     </div>
 }
