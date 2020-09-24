@@ -1,19 +1,5 @@
 import axios from 'axios';
 
-export enum EventType {
-    Enter,
-    Leave
-}
-
-export interface TraceEvent {
-    id: string,
-    location_id: string,
-    location_name: string,
-    student_id: string,
-    student_name: string,
-    time: Date,
-    event_type: EventType
-}
 
 // sendApiRequest sends a request to the origin with the method and relative path to the api.
 // For example, if path was scan this function will request /api/scan
@@ -34,6 +20,31 @@ async function sendApiRequest<T>(method: "GET" | "PUT" | "POST" | "DELETE" | "PA
     }
 }
 
+export enum EventType {
+    Enter,
+    Leave
+}
+
+export interface TraceEvent {
+    id: string,
+    location_id: string,
+    location_name: string,
+    student_id: string,
+    student_name: string,
+    time: Date,
+    event_type: EventType
+}
+
 export async function scan(student_handle: string, location_id: string): Promise<TraceEvent> {
     return await sendApiRequest<TraceEvent>("POST", "scan", {student_handle, location_id});
+}
+
+export interface Location {
+    id: string,
+    name: string,
+    timeout: number
+}
+
+export async function getLocations(): Promise<Location[]> {
+    return await sendApiRequest<Location[]>("GET", "location");
 }

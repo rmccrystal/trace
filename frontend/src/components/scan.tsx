@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import './scan.scss';
-import {Button, Card, FormGroup, InputGroup} from "@blueprintjs/core";
+import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent} from "../api";
 import {onCatch} from "./util";
+import { useGlobalState } from '../app';
 
 // An input that accepts data from the barcode scanner and sends it to the server
 export default function Scan() {
-    let [locationName, setLocationName] = useState('Library');
     let [state, setState] = useState<"form" | "submitted" | "loading">("form");
     let [event, setEvent] = useState<TraceEvent | null>(null);
 
@@ -15,9 +15,16 @@ export default function Scan() {
         setHandle(e.target.value);
     }
 
+    let [_location] = useGlobalState('location');
+    // If there is no location return a loading spinner
+    if (!_location) {
+        return <Spinner />
+    }
+    let location = _location!;
+
     const submit = () => {
         setState("loading");
-        scan(handle, "5f658215319b49a857b35831")
+        scan(handle, location.id)
             .then((ev) => {
                 setEvent(ev);
                 setState("submitted");
@@ -41,7 +48,7 @@ export default function Scan() {
     let contentElem;
     if (state === "form" || state === "loading") {
         contentElem = <>
-            <h1 className="bp3-heading">Please scan badge to sign into {locationName}</h1>
+            <h1 className="bp3-heading">Please scan badge to sign into the {location.name}</h1>
             <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the current
                 proctor
             </div>
@@ -49,6 +56,7 @@ export default function Scan() {
                 label="Badge ID"
                 helperText="After you scan your badge, this form will submit automatically">
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
+                            id="student-handle-input"
                             leftIcon={"align-justify"}
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
@@ -58,8 +66,8 @@ export default function Scan() {
         contentElem = <Submitted event={event!}/>
     }
 
-
-    return <div className="flex items-center justify-center w-full h-full">
+    return <div className="flex items-center justify-center w-full h-full"
+                onFocus={() => document.getElementById("student-handle-input")!.focus()}>
         <Card className="scan-card" elevation={0}>
             {contentElem}
         </Card>
