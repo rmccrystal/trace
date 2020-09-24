@@ -8,16 +8,22 @@ import {FocusStyleManager} from "@blueprintjs/core";
 
 export interface GlobalState {
     location?: Api.Location
+    dark: boolean
 }
 
-export const { useGlobalState } = createGlobalState<GlobalState>({location: undefined});
+export const {useGlobalState} = createGlobalState<GlobalState>({
+    location: undefined, dark: false
+});
 
 function App() {
     useEffect(() => {
         FocusStyleManager.onlyShowFocusOnTabs();
     }, [])
+
+    let [dark] = useGlobalState('dark');
+
     return (
-        <div className="app">
+        <div className={`app ${dark ? "bp3-dark" : "bp3-light"}`}>
             <Nav/>
             <Scan/>
         </div>

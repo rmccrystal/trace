@@ -3,7 +3,6 @@ import * as Api from "../api";
 import {onCatch} from "./util";
 import {ItemPredicate, ItemRenderer, ItemsEqualComparator, Select} from "@blueprintjs/select";
 import {Button, MenuItem, Navbar} from "@blueprintjs/core";
-import {create} from "domain";
 
 const LocationSelectElem = Select.ofType<Api.Location>();
 

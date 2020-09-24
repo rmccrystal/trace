@@ -8,13 +8,21 @@ import { useGlobalState } from "../app";
 export default function Nav() {
     let [location, setLocation] = useGlobalState('location')
 
+    let [dark, setDark] = useGlobalState('dark');
+    const onToggleDark = () => {
+        setDark(!dark);
+    }
+
     const onLocationSelect = (location: Api.Location) => {
         setLocation(location);
     }
 
-    return <Navbar className="nav">
-        <Navbar.Group align="center" className="items-center">
+    return <Navbar fixedToTop>
+        <Navbar.Group align="left">
             <LocationSelect onSelect={onLocationSelect} />
+        </Navbar.Group>
+        <Navbar.Group align="right">
+            <Button icon="contrast" minimal onClick={onToggleDark}/>
         </Navbar.Group>
     </Navbar>
 }
