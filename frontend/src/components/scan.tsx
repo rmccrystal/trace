@@ -39,7 +39,7 @@ export default function Scan() {
     }
 
     const handleKeyDown = (e: any) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && handle) {
             submit();
         }
     }
@@ -65,7 +65,7 @@ export default function Scan() {
         contentElem = <Submitted event={event!}/>
     }
 
-    return <div className="flex items-center justify-center w-full h-full"
+    return <div className="flex items-center justify-center m-auto"
                 onFocus={() => document.getElementById("student-handle-input")!.focus()}>
         <Card className="scan-card" elevation={0}>
             {contentElem}

@@ -25,7 +25,7 @@ function App() {
     let [dark] = useGlobalState('dark');
 
     return (
-        <div className={`app ${dark ? "bp3-dark" : "bp3-light"}`}>
+        <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
             <Nav/>
             <Switch>
                 <Route exact path="/" component={Scan} />
