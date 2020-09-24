@@ -118,7 +118,7 @@ func GetStudentsAtLocation(c *gin.Context) {
 	json := struct {
 		Time time.Time `json:"time"`
 	}{time.Now()}
-	_ = c.BindJSON(&json)
+	_ = c.ShouldBindJSON(&json)
 
 	students, err := trace.GetStudentsAtLocation(id, json.Time)
 	if err != nil {
