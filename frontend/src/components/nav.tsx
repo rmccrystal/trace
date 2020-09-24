@@ -25,8 +25,8 @@ export default function Nav() {
             <Link to="/">
                 <Button minimal className="mx-1" icon="align-justify" text="Scan" />
             </Link>
-            <Link to={"/students"}>
-                <Button minimal className="mx-1" icon="people" text="Students" />
+            <Link to={"/dashboard"}>
+                <Button minimal className="mx-1" icon="dashboard" text={`${location?.name} Dashboard`} />
             </Link>
         </Navbar.Group>
         <Navbar.Group align="right">

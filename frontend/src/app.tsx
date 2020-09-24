@@ -6,7 +6,7 @@ import {createGlobalState} from "react-hooks-global-state";
 import * as Api from "./api";
 import {FocusStyleManager} from "@blueprintjs/core";
 import {Switch, Route, Redirect} from "react-router-dom";
-import StudentList from "./components/studentList";
+import Dashboard from "./components/dashboard";
 
 export interface GlobalState {
     location?: Api.Location
@@ -28,9 +28,9 @@ function App() {
         <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
             <Nav/>
             <Switch>
-                <Route exact path="/" component={Scan} />
-                <Route path="/students" component={StudentList} />
-                <Redirect from="*" to="/" />
+                <Route exact path="/scan" component={Scan} />
+                <Route path="/dashboard" component={Dashboard} />
+                <Redirect from="*" to="/scan" />
             </Switch>
         </div>
     );

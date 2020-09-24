@@ -5,7 +5,7 @@ import {useGlobalState} from "../app";
 import {onCatch} from "./util";
 
 // todo: preserve state while changing the page back
-export default function StudentList() {
+export default function Dashboard() {
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<Student[]>([]);
 
