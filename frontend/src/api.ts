@@ -48,3 +48,14 @@ export interface Location {
 export async function getLocations(): Promise<Location[]> {
     return await sendApiRequest<Location[]>("GET", "location");
 }
+
+export interface Student {
+    id: string,
+    name: string,
+    email: string,
+    student_handles: string[]
+}
+
+export async function getStudentsAtLocation(location_id: string): Promise<Student[]> {
+    return await sendApiRequest<Student[]>("GET", `location/${location_id}/students`);
+}

@@ -4,6 +4,7 @@ import "./nav.scss";
 import LocationSelect from "./locationSelect";
 import * as Api from "../api";
 import { useGlobalState } from "../app";
+import {Link} from "react-router-dom";
 
 export default function Nav() {
     let [location, setLocation] = useGlobalState('location')
@@ -17,9 +18,16 @@ export default function Nav() {
         setLocation(location);
     }
 
-    return <Navbar fixedToTop>
+    return <Navbar>
         <Navbar.Group align="left">
             <LocationSelect onSelect={onLocationSelect} />
+            <Navbar.Divider />
+            <Link to="/">
+                <Button minimal className="mx-1" icon="align-justify" text="Scan" />
+            </Link>
+            <Link to={"/students"}>
+                <Button minimal className="mx-1" icon="people" text="Students" />
+            </Link>
         </Navbar.Group>
         <Navbar.Group align="right">
             <Button icon="contrast" minimal onClick={onToggleDark}/>
