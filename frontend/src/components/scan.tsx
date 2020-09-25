@@ -44,7 +44,6 @@ export default function Scan() {
     useEffect(() => {
         const handleGlobalKeyPress = (event: KeyboardEvent) => {
             setState("form")
-            console.log(formStateTimeout);
             if (formStateTimeout !== null) {
                 clearTimeout(formStateTimeout);
                 setFormStateTimeout(null);
