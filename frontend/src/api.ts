@@ -39,14 +39,14 @@ export async function scan(student_handle: string, location_id: string): Promise
     return await sendApiRequest<TraceEvent>("POST", "scan", {student_handle, location_id});
 }
 
-export interface Location {
+export interface TraceLocation {
     id: string,
     name: string,
     timeout: number
 }
 
-export async function getLocations(): Promise<Location[]> {
-    return await sendApiRequest<Location[]>("GET", "location");
+export async function getLocations(): Promise<TraceLocation[]> {
+    return await sendApiRequest<TraceLocation[]>("GET", "location");
 }
 
 export interface Student {

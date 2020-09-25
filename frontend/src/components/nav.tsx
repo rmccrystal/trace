@@ -14,7 +14,7 @@ export default function Nav() {
         setDark(!dark);
     }
 
-    const onLocationSelect = (location: Api.Location) => {
+    const onLocationSelect = (location: Api.TraceLocation) => {
         setLocation(location);
     }
 

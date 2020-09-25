@@ -9,7 +9,7 @@ import {Switch, Route, Redirect} from "react-router-dom";
 import Dashboard from "./components/dashboard";
 
 export interface GlobalState {
-    location?: Api.Location
+    location?: Api.TraceLocation
     dark: boolean
 }
 

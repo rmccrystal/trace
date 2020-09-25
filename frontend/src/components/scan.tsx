@@ -30,7 +30,7 @@ export default function Scan() {
                 setState("submitted");
                 setTimeout(() => {
                     setState("form")
-                }, 3000);
+                }, 1000);
             })
             .catch((e: any) => {
                 onCatch(e);

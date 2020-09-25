@@ -4,11 +4,11 @@ import {onCatch} from "./util";
 import {ItemPredicate, ItemRenderer, ItemsEqualComparator, Select} from "@blueprintjs/select";
 import {Button, MenuItem, Navbar} from "@blueprintjs/core";
 
-const LocationSelectElem = Select.ofType<Api.Location>();
+const LocationSelectElem = Select.ofType<Api.TraceLocation>();
 
-export default function LocationSelect({onSelect}: { onSelect: (location: Api.Location) => void }) {
-    let [locations, setLocations] = useState<Api.Location[]>([]);
-    let [activeLocation, setActiveLocation] = useState<Api.Location | null>(null)
+export default function LocationSelect({onSelect}: { onSelect: (location: Api.TraceLocation) => void }) {
+    let [locations, setLocations] = useState<Api.TraceLocation[]>([]);
+    let [activeLocation, setActiveLocation] = useState<Api.TraceLocation | null>(null)
 
     useEffect(() => onSelect(activeLocation!), [onSelect, activeLocation]);
 
@@ -41,7 +41,7 @@ export default function LocationSelect({onSelect}: { onSelect: (location: Api.Lo
 }
 
 // We have to use a generator for this so we can update the location list
-function createLocationGenerator(setLocations: Dispatch<SetStateAction<Api.Location[]>>): (name: string) => Api.Location {
+function createLocationGenerator(setLocations: Dispatch<SetStateAction<Api.TraceLocation[]>>): (name: string) => Api.TraceLocation {
     return name => {
         const newLocation = {name: "test", id: "hello", timeout: 1};
         setLocations(prevState => [...prevState, newLocation]);
@@ -49,7 +49,7 @@ function createLocationGenerator(setLocations: Dispatch<SetStateAction<Api.Locat
     }
 }
 
-const renderLocation: ItemRenderer<Api.Location> = (location, { handleClick, modifiers, query }) => {
+const renderLocation: ItemRenderer<Api.TraceLocation> = (location, { handleClick, modifiers, query }) => {
     return (
         <MenuItem
             key={location.id}
@@ -75,11 +75,11 @@ export const renderCreateLocationOption = (
     />
 );
 
-const areLocationsEqual: ItemsEqualComparator<Api.Location> = ((itemA, itemB) => {
+const areLocationsEqual: ItemsEqualComparator<Api.TraceLocation> = ((itemA, itemB) => {
     return itemA.id === itemB.id
 })
 
-const filterLocation: ItemPredicate<Api.Location> = (query, location, _index, exactMatch) => {
+const filterLocation: ItemPredicate<Api.TraceLocation> = (query, location, _index, exactMatch) => {
     const normalizedTitle = location.name.toLowerCase();
     const normalizedQuery = query.toLowerCase();
 

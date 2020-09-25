@@ -20,7 +20,7 @@ func main() {
 
 	students := map[string][]string {
 		"Ryan McCrystal": {"ryan", "_ryan"},
-		"Mrs. Madden": {"madden"},
+		"Ben Aaron": {"ben"},
 		"Cai Noel": {"cai"},
 	}
 

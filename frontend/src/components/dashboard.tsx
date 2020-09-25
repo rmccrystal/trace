@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Card, HTMLTable, Spinner} from "@blueprintjs/core";
-import {getStudentsAtLocation, logoutStudent, Student, TraceEvent} from "../api";
+import {getStudentsAtLocation, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
 import {useGlobalState} from "../app";
 import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import moment from "moment";
@@ -43,7 +43,7 @@ export default function Dashboard() {
         let intervalID = setInterval(updateStudents, 1000);
 
         return () => clearInterval(intervalID)
-    }, [location])
+    }, [location, updateStudents])
 
     if (loading || location === undefined) {
         return <Spinner className="mt-10"/>
@@ -57,28 +57,43 @@ export default function Dashboard() {
             <th>Name</th>
             <th>Time in</th>
             <th>Time Elapsed</th>
-            {/*<th>Log Out</th>*/}
+            <th></th>
             </thead>
             <tbody>
-            {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1).map(student => <tr>
-                <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
-                <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
-                <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
-                <td><Button icon="delete" className="float-right" minimal text={`Log out`} onClick={() => {
-                    if(!location) {
-                        return
-                    }
-
-                    setLoadingLogoutButtonIDs([...loadingLogoutButtonIDs, student.student.id]);
-                    logoutStudent(student.student.id, location!.id)
-                        .then(() => {
-                            updateStudents();
-                            setLoadingLogoutButtonIDs(loadingLogoutButtonIDs.filter(id => id != student.student.id));
-                        })
-                        .catch(onCatchPrefix(`Error logging out ${student.student.name}: `));
-                }}/></td>
-            </tr>)}
+            {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)
+                .map(student => <StudentRow key={student.student.id} location={location!} student={student} onDeleteStudent={updateStudents}/>)}
             </tbody>
         </HTMLTable>
     </Card>
+}
+
+interface StudentRowProps {
+    location: TraceLocation,
+    student: { event: TraceEvent, student: Student },
+    onDeleteStudent: () => void
+}
+
+function StudentRow({location, student, onDeleteStudent}: StudentRowProps) {
+    let [logOutLoading, setLogOutLoading] = useState(false);
+
+    return <tr>
+        <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
+        <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
+        <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
+        <td><Button icon="delete" className="float-right" loading={logOutLoading} minimal text={`Log out`} onClick={() => {
+            if (!location) {
+                return
+            }
+
+            setLogOutLoading(true)
+            logoutStudent(student.student.id, location!.id)
+                .finally(() => {
+                    onDeleteStudent();
+                })
+                .catch(() => {
+                    onCatchPrefix(`Error logging out ${student.student.name}: `);
+                    setLogOutLoading(false);
+                });
+        }}/></td>
+    </tr>
 }
