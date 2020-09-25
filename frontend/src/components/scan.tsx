@@ -1,9 +1,9 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './scan.scss';
 import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent} from "../api";
 import {onCatch} from "./util";
-import { useGlobalState } from '../app';
+import {useGlobalState} from '../app';
 
 // An input that accepts data from the barcode scanner and sends it to the server
 export default function Scan() {
@@ -16,21 +16,22 @@ export default function Scan() {
     }
 
     let [_location] = useGlobalState('location');
-    // If there is no location return a loading spinner
-    if (!_location) {
-        return <Spinner />
-    }
     let location = _location!;
 
+    // so we cancel the timeout if something else changes the state
+    let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
     const submit = () => {
         setState("loading");
         scan(handle, location.id)
             .then((ev) => {
                 setEvent(ev);
                 setState("submitted");
-                setTimeout(() => {
+                let timeout = setTimeout(() => {
                     setState("form")
-                }, 1000);
+                    alert("state");
+                }, 4000);
+                alert(timeout);
+                setFormStateTimeout(() => timeout)
             })
             .catch((e: any) => {
                 onCatch(e);
@@ -38,10 +39,34 @@ export default function Scan() {
             })
     }
 
+    let formInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const handleGlobalKeyPress = (event: KeyboardEvent) => {
+            setState("form")
+            console.log(formStateTimeout);
+            if (formStateTimeout !== null) {
+                clearTimeout(formStateTimeout);
+                setFormStateTimeout(null);
+            }
+
+            formInputRef.current!.focus()
+        }
+
+        window.addEventListener('keydown', handleGlobalKeyPress);
+
+        return () => window.removeEventListener('keydown', handleGlobalKeyPress)
+    }, [formStateTimeout])
+
     const handleKeyDown = (e: any) => {
         if (e.key === "Enter" && handle) {
             submit();
         }
+    }
+
+    // If there is no location return a loading spinner
+    if (!_location) {
+        return <Spinner/>
     }
 
     // The element inside the container card
@@ -56,7 +81,8 @@ export default function Scan() {
                 label="Badge ID"
                 helperText="After you scan your badge, this form will submit automatically">
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
-                            id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false} autoFocus
+                            id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false}
+                            autoFocus inputRef={formInputRef}
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
             </FormGroup>
