@@ -28,9 +28,7 @@ export default function Scan() {
                 setState("submitted");
                 let timeout = setTimeout(() => {
                     setState("form")
-                    alert("state");
                 }, 4000);
-                alert(timeout);
                 setFormStateTimeout(() => timeout)
             })
             .catch((e: any) => {
