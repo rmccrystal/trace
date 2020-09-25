@@ -32,6 +32,9 @@ function App() {
                 <Route path="/dashboard" component={Dashboard} />
                 <Redirect from="*" to="/scan" />
             </Switch>
+            <div className="mt-auto text-center mb-3 bp3-text-muted">
+                Created by Ryan McCrystal | <a href="https://github.com/rmccrystal/trace" target="_blank">github</a>
+            </div>
         </div>
     );
 }
