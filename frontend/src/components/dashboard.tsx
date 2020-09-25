@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {Button, Card, HTMLTable, Spinner} from "@blueprintjs/core";
-import {getStudentsAtLocation, Student, TraceEvent} from "../api";
+import {getStudentsAtLocation, logoutStudent, Student, TraceEvent} from "../api";
 import {useGlobalState} from "../app";
-import {formatAMPM, onCatch} from "./util";
+import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import moment from "moment";
 
 // todo: preserve state while changing the page back
@@ -17,36 +17,38 @@ export default function Dashboard() {
         if (!location) {
             return
         }
+        updateStudents()
+    }, [location]);
+
+    const updateStudents = () => {
+        if (!location) {
+            return
+        }
         getStudentsAtLocation(location.id)
             .then(st => {
-                setLoading(false);
                 setStudents(st);
+                setLoading(false);
             })
-            .catch(onCatch)
-    }, [location]);
+            .catch(onCatchPrefix(`Error getting student list`));
+    }
+
+    // List of logout buttons that should be loading
+    let [loadingLogoutButtonIDs, setLoadingLogoutButtonIDs] = useState<string[]>([]);
 
     // TODO: Use websockets or something for this?
     useEffect(() => {
         if (!location) {
             return
         }
-        let intervalID = setInterval(() => {
-            if (!location) {
-                return
-            }
-            getStudentsAtLocation(location.id)
-                .then(st => {
-                    setStudents(st);
-                })
-                .catch(onCatch)
-        }, 1000);
+        let intervalID = setInterval(updateStudents, 1000);
 
         return () => clearInterval(intervalID)
     }, [location])
 
-    if (loading) {
+    if (loading || location === undefined) {
         return <Spinner className="mt-10"/>
     }
+
 
     return <Card className="max-w-xl w-full m-8">
         <h1 className="bp3-heading text-center">Currently in {location?.name} ({students.length})</h1>
@@ -62,7 +64,19 @@ export default function Dashboard() {
                 <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
                 <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
                 <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
-                <td><Button icon="delete" className="float-right" minimal text={`Log out`}/></td>
+                <td><Button icon="delete" className="float-right" minimal text={`Log out`} onClick={() => {
+                    if(!location) {
+                        return
+                    }
+
+                    setLoadingLogoutButtonIDs([...loadingLogoutButtonIDs, student.student.id]);
+                    logoutStudent(student.student.id, location!.id)
+                        .then(() => {
+                            updateStudents();
+                            setLoadingLogoutButtonIDs(loadingLogoutButtonIDs.filter(id => id != student.student.id));
+                        })
+                        .catch(onCatchPrefix(`Error logging out ${student.student.name}: `));
+                }}/></td>
             </tr>)}
             </tbody>
         </HTMLTable>

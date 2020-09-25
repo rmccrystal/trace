@@ -8,6 +8,13 @@ export function onCatch(reason: any) {
     errorToaster.show({message: reason.toString(), icon: "error", intent: "danger"})
 }
 
+// Returns a function similar to onCatch with a prefix
+export function onCatchPrefix(prefix: string): (reason: any) => void {
+    return reason => {
+        errorToaster.show({message: prefix + reason.toString(), icon: "error", intent: "danger"})
+    }
+}
+
 export function formatAMPM(date: Date): string {
     var hours = date.getHours();
     var minutes: string | number = date.getMinutes();

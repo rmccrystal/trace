@@ -132,7 +132,7 @@ func GetStudentsAtLocation(c *gin.Context) {
 		"event": (event)
 	}]
 	 */
-	var resp []map[string]interface{}
+	var resp = make([]map[string]interface{}, 0)
 	for i := range students {
 		resp = append(resp, map[string]interface{}{
 			"student": students[i],

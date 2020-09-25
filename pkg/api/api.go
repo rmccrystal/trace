@@ -34,6 +34,7 @@ func Listen(addr string, config *Config) error {
 	api.GET("student/:id/location", controllers.GetStudentLocation)
 	api.DELETE("student/:id", controllers.DeleteStudent)
 	api.PATCH("student/:id", controllers.UpdateStudent)
+	api.POST("student/:id/logout", controllers.LogoutStudent)
 
 	return r.Run(addr)
 }

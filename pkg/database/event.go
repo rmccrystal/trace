@@ -24,6 +24,7 @@ type EventSource int32
 const (
 	EventSourceScan      = iota // When a student scans in our out of a location
 	EventSourceAutoLeave        // When a student leaves the library by not singing out for a period of time
+	EventSourceLoggedOut		// When a student is manually logged out through the console
 )
 
 // An Event represents a student either entering or leaving a location
