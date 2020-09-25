@@ -56,7 +56,7 @@ export default function Scan() {
                 label="Badge ID"
                 helperText="After you scan your badge, this form will submit automatically">
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
-                            id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false}
+                            id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false} autoFocus
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
             </FormGroup>
