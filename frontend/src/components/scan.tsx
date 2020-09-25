@@ -22,6 +22,7 @@ export default function Scan() {
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
     const submit = () => {
         setState("loading");
+        setHandle("");
         scan(handle, location.id)
             .then((ev) => {
                 setEvent(ev);
