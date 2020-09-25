@@ -33,6 +33,7 @@ export default function Scan() {
             })
             .catch((e: any) => {
                 onCatch(e);
+                setHandle("");
                 setState("form");
             })
     }
@@ -79,7 +80,7 @@ export default function Scan() {
                 helperText="After you scan your badge, this form will submit automatically">
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
                             id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false}
-                            autoFocus inputRef={formInputRef}
+                            value={handle} autoFocus inputRef={formInputRef}
                             rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
                                                   onClick={submit}/>}/>
             </FormGroup>
@@ -88,7 +89,7 @@ export default function Scan() {
         contentElem = <Submitted event={event!}/>
     }
 
-    return <div className="flex items-center justify-center m-auto"
+    return <div className="flex items-center justify-center m-auto max-w-xll w-full"
                 onFocus={() => document.getElementById("student-handle-input")!.focus()}>
         <Card className="scan-card" elevation={0}>
             {contentElem}
