@@ -8,7 +8,7 @@ import {FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
 import Dashboard from "./components/dashboard";
 import {getLocations, TraceLocation} from "./api";
-import {onCatchPrefix} from "./components/util";
+import useLocalStorage, {onCatchPrefix} from "./components/util";
 
 export interface GlobalState {
     dark: boolean
@@ -23,24 +23,33 @@ function App() {
         FocusStyleManager.onlyShowFocusOnTabs();
     }, [])
 
-    let [dark] = useGlobalState('dark');
+    let [dark, setDark] = useLocalStorage('dark', false);
     let [_location, setLocation] = useState<TraceLocation | null>(null);
+    let [locationID, setLocationID] = useLocalStorage('location', '');
+
+    useEffect(() => {
+        if (_location) {
+            setLocationID(_location.id)
+        }
+    }, [_location, setLocationID])
 
     useEffect(() => {
         getLocations()
-            .then(locations => setLocation(locations[0]))
+            .then(locations => {
+                setLocation(locations.find(value => value.id === locationID) || locations[0])
+            })
             .catch(onCatchPrefix("Error getting list of locations: "));
-    }, [])
+    }, [locationID])
 
     if (_location === null) {
-        return <Spinner className="m-auto absolute inset-0" />
+        return <Spinner className="m-auto absolute inset-0"/>
     }
     let location = _location!;
 
     return (
         <BrowserRouter>
             <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
-                <Nav setLocation={setLocation} location={location}/>
+                <Nav setLocation={setLocation} location={location} onToggleDark={() => setDark(!dark)}/>
                 <Switch>
                     <Route exact path="/scan" component={() => <Scan location={location}/>}/>
                     <Route path="/dashboard" component={() => <Dashboard location={location}/>}/>

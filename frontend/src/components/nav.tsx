@@ -3,15 +3,15 @@ import {Navbar, Button} from "@blueprintjs/core";
 import "./nav.scss";
 import LocationSelect from "./locationSelect";
 import * as Api from "../api";
-import {useGlobalState} from "../app";
 import {Link} from "react-router-dom";
 
-export default function Nav({location, setLocation}: { location: Api.TraceLocation, setLocation: (location: Api.TraceLocation) => void }) {
-    let [dark, setDark] = useGlobalState('dark');
-    const onToggleDark = () => {
-        setDark(!dark);
-    }
+export interface NavProps {
+    location: Api.TraceLocation,
+    setLocation: (location: Api.TraceLocation) => void,
+    onToggleDark: () => void,
+}
 
+export default function Nav({location, setLocation, onToggleDark}: NavProps) {
     return <Navbar>
         <Navbar.Group align="left">
             <LocationSelect activeLocation={location} onSelect={setLocation}/>
