@@ -6,24 +6,16 @@ import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import moment from "moment";
 
 // todo: preserve state while changing the page back
-export default function Dashboard() {
+export default function Dashboard({location}: {location: TraceLocation}) {
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
-    let [location] = useGlobalState('location')
-
     useEffect(() => {
         setLoading(true);
-        if (!location) {
-            return
-        }
         updateStudents()
     }, [location]);
 
     const updateStudents = () => {
-        if (!location) {
-            return
-        }
         getStudentsAtLocation(location.id)
             .then(st => {
                 setStudents(st);
@@ -45,10 +37,9 @@ export default function Dashboard() {
         return () => clearInterval(intervalID)
     }, [location, updateStudents])
 
-    if (loading || location === undefined) {
+    if (loading) {
         return <Spinner className="mt-10"/>
     }
-
 
     return <Card className="max-w-xl w-full m-8">
         <h1 className="bp3-heading text-center">Currently in {location?.name} ({students.length})</h1>

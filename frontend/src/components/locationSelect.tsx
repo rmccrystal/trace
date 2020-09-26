@@ -6,18 +6,14 @@ import {Button, MenuItem, Navbar} from "@blueprintjs/core";
 
 const LocationSelectElem = Select.ofType<Api.TraceLocation>();
 
-export default function LocationSelect({onSelect}: { onSelect: (location: Api.TraceLocation) => void }) {
+export default function LocationSelect({activeLocation, onSelect}: { activeLocation: Api.TraceLocation, onSelect: (location: Api.TraceLocation) => void }) {
     let [locations, setLocations] = useState<Api.TraceLocation[]>([]);
-    let [activeLocation, setActiveLocation] = useState<Api.TraceLocation | null>(null)
 
     useEffect(() => onSelect(activeLocation!), [onSelect, activeLocation]);
 
     useEffect(() => {
         Api.getLocations()
-            .then((locs) => {
-                setLocations(locs);
-                setActiveLocation(locs[0]);
-            })
+            .then(setLocations)
             .catch(onCatch)
     }, []);
 
@@ -28,8 +24,8 @@ export default function LocationSelect({onSelect}: { onSelect: (location: Api.Tr
         itemsEqual={areLocationsEqual}
         activeItem={activeLocation}
         createNewItemRenderer={renderCreateLocationOption}
-        onItemSelect={setActiveLocation}
-        noResults={<MenuItem disabled={true} text="No results." />}
+        onItemSelect={onSelect}
+        noResults={<MenuItem disabled={true} text="No results."/>}
         className={"bp3-focus-disabled"}
     >
         <Button
@@ -49,7 +45,7 @@ function createLocationGenerator(setLocations: Dispatch<SetStateAction<Api.Trace
     }
 }
 
-const renderLocation: ItemRenderer<Api.TraceLocation> = (location, { handleClick, modifiers, query }) => {
+const renderLocation: ItemRenderer<Api.TraceLocation> = (location, {handleClick, modifiers, query}) => {
     return (
         <MenuItem
             key={location.id}

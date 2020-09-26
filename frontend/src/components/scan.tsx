@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import './scan.scss';
 import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
-import {EventType, scan, TraceEvent} from "../api";
+import {EventType, scan, TraceEvent, TraceLocation} from "../api";
 import {onCatch} from "./util";
 import {useGlobalState} from '../app';
 
 // An input that accepts data from the barcode scanner and sends it to the server
-export default function Scan() {
+export default function Scan({location}: {location: TraceLocation}) {
     let [state, setState] = useState<"form" | "submitted" | "loading">("form");
     let [event, setEvent] = useState<TraceEvent | null>(null);
 
@@ -14,9 +14,6 @@ export default function Scan() {
     const handleChange = (e: any) => {
         setHandle(e.target.value);
     }
-
-    let [_location] = useGlobalState('location');
-    let location = _location!;
 
     // so we cancel the timeout if something else changes the state
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
@@ -61,11 +58,6 @@ export default function Scan() {
         if (e.key === "Enter" && handle) {
             submit();
         }
-    }
-
-    // If there is no location return a loading spinner
-    if (!_location) {
-        return <Spinner/>
     }
 
     // The element inside the container card
