@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Button, Card, HTMLTable, Spinner} from "@blueprintjs/core";
 import {getStudentsAtLocation, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
-import {useGlobalState} from "../app";
 import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import moment from "moment";
 
@@ -48,7 +47,7 @@ export default function Dashboard({location}: {location: TraceLocation}) {
             <th>Name</th>
             <th>Time in</th>
             <th>Time Elapsed</th>
-            <th></th>
+            <th/>
             </thead>
             <tbody>
             {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)

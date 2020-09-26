@@ -3,7 +3,6 @@ import './scan.scss';
 import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent, TraceLocation} from "../api";
 import {onCatch} from "./util";
-import {useGlobalState} from '../app';
 
 // An input that accepts data from the barcode scanner and sends it to the server
 export default function Scan({location}: {location: TraceLocation}) {
@@ -19,7 +18,6 @@ export default function Scan({location}: {location: TraceLocation}) {
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
     const submit = () => {
         setState("loading");
-        setHandle("");
         scan(handle, location.id)
             .then((ev) => {
                 setEvent(ev);
@@ -31,9 +29,9 @@ export default function Scan({location}: {location: TraceLocation}) {
             })
             .catch((e: any) => {
                 onCatch(e);
-                setHandle("");
                 setState("form");
             })
+            .finally(() => setHandle(""));
     }
 
     let formInputRef = useRef<HTMLInputElement>(null);
