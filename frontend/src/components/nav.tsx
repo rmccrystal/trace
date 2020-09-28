@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import {Navbar, Button} from "@blueprintjs/core";
-import "./nav.scss";
 import LocationSelect from "./locationSelect";
 import * as Api from "../api";
 import {Link} from "react-router-dom";

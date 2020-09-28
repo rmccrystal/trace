@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import './scan.scss';
 import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent, TraceLocation} from "../api";
 import {onCatch} from "./util";
@@ -82,7 +81,7 @@ export default function Scan({location}: {location: TraceLocation}) {
 
     return <div className="flex items-center justify-center m-auto max-w-xll w-full"
                 onFocus={() => document.getElementById("student-handle-input")!.focus()}>
-        <Card className="scan-card" elevation={0}>
+        <Card className="p-16 m-8" elevation={0}>
             {contentElem}
         </Card>
     </div>
