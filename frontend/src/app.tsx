@@ -4,7 +4,7 @@ import Scan from './components/scan';
 import Nav from "./components/nav";
 import {createGlobalState} from "react-hooks-global-state";
 import * as Api from "./api";
-import {FocusStyleManager, Spinner} from "@blueprintjs/core";
+import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
 import Dashboard from "./components/dashboard";
 import {getLocations, TraceLocation} from "./api";
@@ -51,7 +51,7 @@ function App() {
             <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
                 <Nav setLocation={setLocation} location={location} onToggleDark={() => setDark(!dark)}/>
                 <Switch>
-                    <Route exact path="/scan" component={() => <Scan location={location}/>}/>
+                    <Route exact path="/scan" component={() => <Scan location={location} className="p-16 m-8 my-auto" elevation={0}/>}/>
                     <Route path="/dashboard" component={() => <Dashboard location={location}/>}/>
                     <Redirect from="*" to="/scan"/>
                 </Switch>

@@ -1,10 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Button, Card, FormGroup, InputGroup, Spinner} from "@blueprintjs/core";
+import {Button, Card, FormGroup, ICardProps, InputGroup, Spinner} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent, TraceLocation} from "../api";
 import {onCatch} from "./util";
 
 // An input that accepts data from the barcode scanner and sends it to the server
-export default function Scan({location}: {location: TraceLocation}) {
+export default function Scan({location, ...props}: { location: TraceLocation } & ICardProps) {
     let [state, setState] = useState<"form" | "submitted" | "loading">("form");
     let [event, setEvent] = useState<TraceEvent | null>(null);
 
@@ -79,12 +79,9 @@ export default function Scan({location}: {location: TraceLocation}) {
         contentElem = <Submitted event={event!}/>
     }
 
-    return <div className="flex items-center justify-center m-auto max-w-xll w-full"
-                onFocus={() => document.getElementById("student-handle-input")!.focus()}>
-        <Card className="p-16 m-8" elevation={0}>
-            {contentElem}
-        </Card>
-    </div>
+    return <Card {...props}>
+        {contentElem}
+    </Card>
 }
 
 // Displayed when a student scans
