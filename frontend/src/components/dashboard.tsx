@@ -41,7 +41,7 @@ export default function Dashboard({location}: {location: TraceLocation}) {
     }
 
     return <Card className="max-w-xl w-full m-8">
-        <h1 className="bp3-heading text-center">Currently in {location?.name} ({students.length})</h1>
+        <h1 className="bp3-heading text-center">Currently in {location.name} ({students.length})</h1>
         <HTMLTable condensed striped className="w-full">
             <thead>
             <th>Name</th>
