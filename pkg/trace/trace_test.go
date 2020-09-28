@@ -2,6 +2,7 @@ package trace
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -203,4 +204,55 @@ func TestGetStudentsAtLocation(t *testing.T) {
 		t.Fatalf("Found a student at location %s 5 hours ago when the enter event was created just now", TestLocation.Name)
 	}
 	logrus.Infof("Found no students at location %s 5 hours ago", TestLocation.Name)
+}
+
+func TestGenerateContactReport(t *testing.T) {
+	err := TestDatabase.Collections.Events.Drop(nil)
+	assert.NoError(t, err)
+
+	student1 := database.Student{
+		Name: "student1",
+	}
+	student2 := database.Student{
+		Name: "student2",
+	}
+
+	// Create the students
+	assert.NoError(t, TestDatabase.CreateStudent(&student1))
+	assert.NoError(t, TestDatabase.CreateStudent(&student2))
+
+	baseTime := time.Now()
+
+	// Create test events
+
+	// student1 entered 10 minutes ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student1.ID,
+		Time:       baseTime.Add(-10 * time.Minute),
+		EventType:  database.EventEnter,
+		Source:     0,
+	}))
+	// student2 entered 5 minutes ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student2.ID,
+		Time:       baseTime.Add(-5 * time.Minute),
+		EventType:  database.EventEnter,
+		Source:     0,
+	}))
+	// student1 left 1 minute ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student1.ID,
+		Time:       baseTime.Add(-1 * time.Minute),
+		EventType:  database.EventLeave,
+		Source:     0,
+	}))
+	// time student 1 and student 2 have been together: 4 minutes
+
+	contactReport, err := GenerateContactReport(&student1, time.Unix(0, 0), baseTime, 1)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 4 * time.Minute, contactReport.Contacts[0][student2.ID])
 }
