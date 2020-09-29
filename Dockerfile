@@ -23,7 +23,7 @@ WORKDIR /app/frontend
 RUN yarn build
 
 WORKDIR /app
-RUN go build cmd/api
+RUN go build ./cmd/api
 
 EXPOSE 8080
 
