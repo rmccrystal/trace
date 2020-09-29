@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from "react";
-import {Button, Card, HTMLTable, Spinner} from "@blueprintjs/core";
 import {getStudentsAtLocation, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
-import {formatAMPM, onCatch, onCatchPrefix} from "./util";
+import {formatAMPM, onCatchPrefix} from "./util";
+import {Button, Card, HTMLTable, ICardProps, Spinner} from "@blueprintjs/core";
 import moment from "moment";
 
-// todo: preserve state while changing the page back
-export default function Dashboard({location}: {location: TraceLocation}) {
+export default function CurrentlyInLocation({location, ...props}: {location: TraceLocation} & ICardProps) {
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
@@ -40,8 +39,8 @@ export default function Dashboard({location}: {location: TraceLocation}) {
         return <Spinner className="mt-10"/>
     }
 
-    return <Card className="max-w-xl w-full m-8">
-        <h1 className="bp3-heading text-center">Currently in {location?.name} ({students.length})</h1>
+    return <Card {...props} className="max-w-xl w-full m-8">
+        <h1 className="bp3-heading text-center">Currently in {location.name} ({students.length})</h1>
         <HTMLTable condensed striped className="w-full">
             <thead>
             <th>Name</th>
