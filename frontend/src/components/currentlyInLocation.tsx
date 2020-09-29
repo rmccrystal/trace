@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {getStudentsAtLocation, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
 import {formatAMPM, onCatchPrefix} from "./util";
 import {Button, Card, HTMLTable, ICardProps, Spinner} from "@blueprintjs/core";
@@ -8,14 +8,14 @@ export default function CurrentlyInLocation({location, ...props}: {location: Tra
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
-    const updateStudents = () => {
+    const updateStudents = useCallback(() => {
         getStudentsAtLocation(location.id)
             .then(st => {
                 setStudents(st);
                 setLoading(false);
             })
             .catch(onCatchPrefix(`Error getting student list`));
-    }
+    }, [location])
 
     useEffect(() => {
         setLoading(true);
