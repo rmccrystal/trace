@@ -142,3 +142,43 @@ func GetStudentsAtLocation(c *gin.Context) {
 
 	Success(c, http.StatusOK, resp)
 }
+
+func LogoutAllStudentsAtLocation(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+		return
+	}
+	location, found, err := database.DB.GetLocationByID(id)
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
+		return
+	}
+	if !found {
+		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+		return
+	}
+
+	students, _, err := trace.GetStudentsAtLocation(location.ID, time.Now())
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error getting students at location: %s", err)
+		return
+	}
+
+	for _, student := range students {
+		newEvent := database.Event{
+			LocationID: location.ID,
+			StudentID:  student.ID,
+			Time:       time.Now(),
+			EventType:  database.EventLeave,
+			Source:     database.EventSourceLoggedOutAll,
+		}
+		err = database.DB.CreateEvent(&newEvent)
+		if err != nil {
+			Errorf(c, http.StatusInternalServerError, "could not create new event: %s", err)
+			return
+		}
+	}
+
+	Success(c, http.StatusCreated, nil)
+}

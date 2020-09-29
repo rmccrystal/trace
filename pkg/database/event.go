@@ -25,6 +25,7 @@ const (
 	EventSourceScan      = iota // When a student scans in our out of a location
 	EventSourceAutoLeave        // When a student leaves the library by not singing out for a period of time
 	EventSourceLoggedOut		// When a student is manually logged out through the console
+	EventSourceLoggedOutAll		// When the log out all button is clicked
 )
 
 // An Event represents a student either entering or leaving a location

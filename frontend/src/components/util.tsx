@@ -27,6 +27,7 @@ export function formatAMPM(date: Date): string {
     return strTime;
 }
 
+// From https://usehooks-typescript.com/use-local-storage/
 export default function useLocalStorage<T>(key: string, initialValue: T) {
     // Prevent build error "window is undefined" but keep keep working
     const isServer = typeof window === 'undefined'
