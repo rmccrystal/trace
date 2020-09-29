@@ -3,7 +3,6 @@ import './app.scss';
 import Scan from './components/scan';
 import Nav from "./components/nav";
 import {createGlobalState} from "react-hooks-global-state";
-import * as Api from "./api";
 import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
 import {getLocations, TraceLocation} from "./api";

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Card, Divider, HTMLTable, ICardProps, IHTMLTableProps} from "@blueprintjs/core";
+import {Card, HTMLTable, IHTMLTableProps} from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
 
