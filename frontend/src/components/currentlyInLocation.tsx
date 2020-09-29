@@ -36,26 +36,28 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
         return <Spinner className="mt-10"/>
     }
 
-    return <Card {...props} className="max-w-xl w-full m-8">
+    return <Card {...props} className="max-w-3xl w-full m-8 p-8">
         <h1 className="bp3-heading text-center">
             Currently in {location.name} ({students.length})
         </h1>
         <Button minimal className="mx-auto block my-2"><h4 className="bp3-text-muted bp3-heading text-center m-auto">Log
             out all</h4></Button>
-        <HTMLTable condensed striped className="w-full">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Time in</th>
-                <th>Time Elapsed</th>
-            </tr>
-            </thead>
-            <tbody>
-            {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)
-                .map(student => <StudentRow key={student.student.id} location={location!} student={student}
-                                            onDeleteStudent={updateStudents}/>)}
-            </tbody>
-        </HTMLTable>
+        <Card className="p-0" elevation={1}>
+            <HTMLTable condensed striped className="w-full">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Time in</th>
+                    <th>Time Elapsed</th>
+                </tr>
+                </thead>
+                <tbody>
+                {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)
+                    .map(student => <StudentRow key={student.student.id} location={location!} student={student}
+                                                onDeleteStudent={updateStudents}/>)}
+                </tbody>
+            </HTMLTable>
+        </Card>
     </Card>
 }
 

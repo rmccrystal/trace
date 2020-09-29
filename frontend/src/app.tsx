@@ -51,8 +51,8 @@ function App() {
             <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
                 <Nav setLocation={setLocation} location={location} onToggleDark={() => setDark(!dark)}/>
                 <Switch>
-                    <Route exact path="/scan" component={() => <Scan location={location}/>}/>
-                    <Route path="/dashboard" component={() => <CurrentlyInLocation location={location}/>}/>
+                    <Route exact path="/scan" component={() => <Scan location={location} elevation={1}/>}/>
+                    <Route path="/dashboard" component={() => <CurrentlyInLocation location={location} elevation={1}/>}/>
                     <Route path="/students" component={() => <StudentList/>}/>
                     <Redirect from="*" to="/scan"/>
                 </Switch>

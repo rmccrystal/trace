@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {Card, HTMLTable, Icon, IHTMLTableProps, Spinner, Tag, Tooltip} from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
-import {TOOLTIP_INDICATOR} from "@blueprintjs/core/lib/esm/common/classes";
 
 export default function StudentList() {
     const [students, setStudents] = useState<Student[]>([]);
