@@ -53,11 +53,11 @@ function App() {
                 <Switch>
                     <Route exact path="/scan" component={() => <Scan location={location} elevation={1}/>}/>
                     <Route path="/dashboard" component={() => <CurrentlyInLocation location={location} elevation={1}/>}/>
-                    <Route path="/students" component={() => <StudentList/>}/>
+                    <Route path="/students" component={() => <StudentList elevation={1}/>}/>
                     <Redirect from="*" to="/scan"/>
                 </Switch>
                 <div className="mt-auto text-center mb-3 bp3-text-muted">
-                    Created by Ryan McCrystal | <a href="https://github.com/rmccrystal/trace" target="_blank">github</a>
+                    Created by Ryan McCrystal | <a href="https://github.com/rmccrystal/trace" rel="noopener noreferrer" target="_blank">github</a>
                 </div>
             </div>
         </BrowserRouter>

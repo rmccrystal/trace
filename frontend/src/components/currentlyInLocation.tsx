@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {getStudentsAtLocation, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
-import {formatAMPM, onCatchPrefix} from "./util";
+import {getStudentsAtLocation, logoutAll, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
+import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import {Button, Card, HTMLTable, ICardProps, Spinner} from "@blueprintjs/core";
 import moment from "moment";
 
@@ -13,6 +13,7 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
             .then(st => {
                 setStudents(st);
                 setLoading(false);
+                setLogoutAllLoading(false);
             })
             .catch(onCatchPrefix(`Error getting student list`));
     }, [location])
@@ -32,6 +33,15 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
         return () => clearInterval(intervalID)
     }, [location, updateStudents])
 
+    const [logoutAllLoading, setLogoutAllLoading] = useState(false);
+    const handleLogoutAllPress = () => {
+        // This is set to false in the updateStudents func
+        setLogoutAllLoading(true);
+        logoutAll(location.id)
+            .then(updateStudents)
+            .catch(onCatch)
+    }
+
     if (loading) {
         return <Spinner className="mt-10"/>
     }
@@ -40,8 +50,11 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
         <h1 className="bp3-heading text-center">
             Currently in {location.name} ({students.length})
         </h1>
-        <Button minimal className="mx-auto block my-2"><h4 className="bp3-text-muted bp3-heading text-center m-auto">Log
-            out all</h4></Button>
+        <Button minimal className="mx-auto block my-3" onClick={handleLogoutAllPress} loading={logoutAllLoading}>
+            <h4 className="bp3-text-muted bp3-heading text-center m-auto">
+                Log out all
+            </h4>
+        </Button>
         <Card className="p-0" elevation={1}>
             <HTMLTable condensed striped className="w-full">
                 <thead>

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Button, Card, FormGroup, ICardProps, InputGroup, Spinner} from "@blueprintjs/core";
+import {Button, Card, FormGroup, ICardProps, InputGroup} from "@blueprintjs/core";
 import {EventType, scan, TraceEvent, TraceLocation} from "../api";
 import {onCatch} from "./util";
 
@@ -16,6 +16,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
     // so we cancel the timeout if something else changes the state
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
     const submit = () => {
+        console.log('lo')
         setState("loading");
         scan(handle, location.id)
             .then((ev) => {

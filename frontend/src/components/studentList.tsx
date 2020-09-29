@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {Card, HTMLTable, Icon, IHTMLTableProps, Spinner, Tag, Tooltip} from "@blueprintjs/core";
+import {Card, HTMLTable, ICardProps, Icon, IHTMLTableProps, Spinner, Tag, Tooltip} from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
 
-export default function StudentList() {
+export default function StudentList({...props}: ICardProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -16,7 +16,7 @@ export default function StudentList() {
             .catch(onCatch)
     }, []);
 
-    return <Card className="mt-8 max-w-3xl w-full p-0">
+    return <Card className="mt-8 max-w-3xl w-full p-0" {...props}>
         <StudentTable students={students} className="w-full" striped bordered loading={loading}/>
     </Card>
 }

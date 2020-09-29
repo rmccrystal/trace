@@ -71,3 +71,7 @@ export async function logoutStudent(student_id: string, location_id: string): Pr
 export async function getStudents(): Promise<Student[]> {
     return await sendApiRequest("GET", `student`);
 }
+
+export async function logoutAll(location_id: string): Promise<null> {
+    return await sendApiRequest("POST", `location/${location_id}/logoutAll`);
+}
