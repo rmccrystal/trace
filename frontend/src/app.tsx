@@ -2,21 +2,12 @@ import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
 import './app.scss';
 import Scan from './components/scan';
 import Nav from "./components/nav";
-import {createGlobalState} from "react-hooks-global-state";
 import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
 import {getLocations, TraceLocation} from "./api";
 import useLocalStorage, {onCatchPrefix} from "./components/util";
 import StudentList from "./components/studentList";
 import CurrentlyInLocation from "./components/currentlyInLocation";
-
-export interface GlobalState {
-    dark: boolean
-}
-
-export const {useGlobalState} = createGlobalState<GlobalState>({
-    dark: false
-});
 
 function App() {
     useEffect(() => {
