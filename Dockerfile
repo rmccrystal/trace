@@ -3,12 +3,11 @@ FROM ubuntu
 # Install Golang and Node
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install golang nodejs npm -y
-RUN npm install -g yarn
 
 # Install npm deps
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN yarn
+RUN npm install
 
 WORKDIR /app
 COPY ./go.mod .
@@ -20,7 +19,7 @@ WORKDIR /app
 COPY . .
 
 WORKDIR /app/frontend
-RUN yarn build
+RUN npm run build
 
 WORKDIR /app
 RUN go build ./cmd/api
