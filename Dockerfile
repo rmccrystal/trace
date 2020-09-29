@@ -2,7 +2,7 @@ FROM ubuntu
 
 # Install Golang and Node
 RUN apt-get update
-RUN apt-get install golang nodejs npm -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get install golang nodejs npm -y
 RUN npm install -g yarn
 
 # Install npm deps
