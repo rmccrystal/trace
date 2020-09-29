@@ -2,10 +2,13 @@ package api
 
 import (
 	"errors"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"trace/pkg/controllers"
 	"trace/pkg/database"
 )
+
+const frontendDirectory = "frontend/build"
 
 // Listen starts the api server at the specified address
 func Listen(addr string, config *Config) error {
@@ -36,6 +39,12 @@ func Listen(addr string, config *Config) error {
 	api.DELETE("student/:id", controllers.DeleteStudent)
 	api.PATCH("student/:id", controllers.UpdateStudent)
 	api.POST("student/:id/logout", controllers.LogoutStudent)
+
+	// Serve React frontend
+	r.Use(static.Serve("/", static.LocalFile("frontend/build", false)))
+	r.NoRoute(func(c *gin.Context) {
+		c.File("frontend/build/index.html")
+	})
 
 	return r.Run(addr)
 }

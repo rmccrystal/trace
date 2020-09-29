@@ -24,7 +24,7 @@ export default function Nav({location, setLocation, onToggleDark}: NavProps) {
             <NavLink icon="align-justify" title="Scan" to="/" />
             <NavLink icon="dashboard" title={`${location.name} Dashboard`} to="/dashboard" />
             <NavLink icon="people" title="Manage Students" to="/students" />
-            <NavLink icon="graph" title="Contact Tracing" to="/trace" />
+            {/*<NavLink icon="graph" title="Contact Tracing" to="/trace" />*/}
         </Navbar.Group>
         <Navbar.Group align="right">
             <Button icon="contrast" minimal onClick={onToggleDark}/>
