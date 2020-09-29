@@ -8,11 +8,6 @@ export default function CurrentlyInLocation({location, ...props}: {location: Tra
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
-    useEffect(() => {
-        setLoading(true);
-        updateStudents()
-    }, [location]);
-
     const updateStudents = () => {
         getStudentsAtLocation(location.id)
             .then(st => {
@@ -22,8 +17,10 @@ export default function CurrentlyInLocation({location, ...props}: {location: Tra
             .catch(onCatchPrefix(`Error getting student list`));
     }
 
-    // List of logout buttons that should be loading
-    let [loadingLogoutButtonIDs, setLoadingLogoutButtonIDs] = useState<string[]>([]);
+    useEffect(() => {
+        setLoading(true);
+        updateStudents()
+    }, [location, updateStudents]);
 
     // TODO: Use websockets or something for this?
     useEffect(() => {

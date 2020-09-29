@@ -1,29 +1,42 @@
 import React, {useEffect, useState} from "react";
-import {Card, HTMLTable, IHTMLTableProps} from "@blueprintjs/core";
+import {Card, HTMLTable, Icon, IHTMLTableProps, Spinner, Tag, Tooltip} from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
+import {TOOLTIP_INDICATOR} from "@blueprintjs/core/lib/esm/common/classes";
 
 export default function StudentList() {
     const [students, setStudents] = useState<Student[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getStudents()
-            .then(setStudents)
+            .then(students => {
+                setStudents(students);
+                setLoading(false);
+            })
             .catch(onCatch)
     }, []);
 
     return <Card className="mt-8 max-w-3xl w-full p-0">
-        <StudentTable students={students} className="w-full" striped bordered/>
+        <StudentTable students={students} className="w-full" striped bordered loading={loading}/>
     </Card>
 }
 
-function StudentTable({students, ...props}: { students: Student[] } & IHTMLTableProps) {
+function StudentTable({students, loading, ...props}: { students: Student[], loading: boolean } & IHTMLTableProps) {
+    if (loading) {
+        return <Spinner className="m-8"/>
+    }
+
     return <HTMLTable {...props}>
         <thead>
         <tr>
             <th>Name</th>
             <th>Email</th>
-            <th>Handles</th>
+            <th>
+                <Tooltip content="A student handle is text that can be entered into the scan tab to log in or log out. This should be unique for each student.">
+                    <span>Handles <Icon style={{verticalAlign: "top"}} icon="help" iconSize={10}/></span>
+                </Tooltip>
+            </th>
         </tr>
         </thead>
         <tbody>
