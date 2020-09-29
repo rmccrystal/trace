@@ -33,7 +33,7 @@ function StudentTable({students, loading, ...props}: { students: Student[], load
             <th>Name</th>
             <th>Email</th>
             <th>
-                <Tooltip content="A student handle is text that can be entered into the scan tab to log in or log out. This should be unique for each student.">
+                <Tooltip content="A student handle is text that can be entered into the scan tab to log in or log out">
                     <span>Handles <Icon style={{verticalAlign: "top"}} icon="help" iconSize={10}/></span>
                 </Tooltip>
             </th>
