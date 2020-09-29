@@ -4,7 +4,7 @@ import {formatAMPM, onCatchPrefix} from "./util";
 import {Button, Card, HTMLTable, ICardProps, Spinner} from "@blueprintjs/core";
 import moment from "moment";
 
-export default function CurrentlyInLocation({location, ...props}: {location: TraceLocation} & ICardProps) {
+export default function CurrentlyInLocation({location, ...props}: { location: TraceLocation } & ICardProps) {
     let [loading, setLoading] = useState(true);
     let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
 
@@ -37,17 +37,23 @@ export default function CurrentlyInLocation({location, ...props}: {location: Tra
     }
 
     return <Card {...props} className="max-w-xl w-full m-8">
-        <h1 className="bp3-heading text-center">Currently in {location.name} ({students.length})</h1>
+        <h1 className="bp3-heading text-center">
+            Currently in {location.name} ({students.length})
+        </h1>
+        <Button minimal className="mx-auto block my-2"><h4 className="bp3-text-muted bp3-heading text-center m-auto">Log
+            out all</h4></Button>
         <HTMLTable condensed striped className="w-full">
             <thead>
-            <th>Name</th>
-            <th>Time in</th>
-            <th>Time Elapsed</th>
-            <th/>
+            <tr>
+                <th>Name</th>
+                <th>Time in</th>
+                <th>Time Elapsed</th>
+            </tr>
             </thead>
             <tbody>
             {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)
-                .map(student => <StudentRow key={student.student.id} location={location!} student={student} onDeleteStudent={updateStudents}/>)}
+                .map(student => <StudentRow key={student.student.id} location={location!} student={student}
+                                            onDeleteStudent={updateStudents}/>)}
             </tbody>
         </HTMLTable>
     </Card>
@@ -66,20 +72,21 @@ function StudentRow({location, student, onDeleteStudent}: StudentRowProps) {
         <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
         <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
         <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
-        <td><Button icon="delete" className="float-right" loading={logOutLoading} minimal text={`Log out`} onClick={() => {
-            if (!location) {
-                return
-            }
+        <td><Button icon="delete" className="float-right" loading={logOutLoading} minimal text={`Log out`}
+                    onClick={() => {
+                        if (!location) {
+                            return
+                        }
 
-            setLogOutLoading(true)
-            logoutStudent(student.student.id, location!.id)
-                .finally(() => {
-                    onDeleteStudent();
-                })
-                .catch(() => {
-                    onCatchPrefix(`Error logging out ${student.student.name}: `);
-                    setLogOutLoading(false);
-                });
-        }}/></td>
+                        setLogOutLoading(true)
+                        logoutStudent(student.student.id, location!.id)
+                            .finally(() => {
+                                onDeleteStudent();
+                            })
+                            .catch(() => {
+                                onCatchPrefix(`Error logging out ${student.student.name}: `);
+                                setLogOutLoading(false);
+                            });
+                    }}/></td>
     </tr>
 }
