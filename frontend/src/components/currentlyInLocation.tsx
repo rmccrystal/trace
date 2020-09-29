@@ -39,7 +39,7 @@ export default function CurrentlyInLocation({location, ...props}: {location: Tra
         return <Spinner className="mt-10"/>
     }
 
-    return <Card {...props}>
+    return <Card {...props} className="max-w-xl w-full m-8">
         <h1 className="bp3-heading text-center">Currently in {location.name} ({students.length})</h1>
         <HTMLTable condensed striped className="w-full">
             <thead>

@@ -6,9 +6,10 @@ import {createGlobalState} from "react-hooks-global-state";
 import * as Api from "./api";
 import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
-import Dashboard from "./components/dashboard";
 import {getLocations, TraceLocation} from "./api";
 import useLocalStorage, {onCatchPrefix} from "./components/util";
+import StudentList from "./components/studentList";
+import CurrentlyInLocation from "./components/currentlyInLocation";
 
 export interface GlobalState {
     dark: boolean
@@ -51,8 +52,9 @@ function App() {
             <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
                 <Nav setLocation={setLocation} location={location} onToggleDark={() => setDark(!dark)}/>
                 <Switch>
-                    <Route exact path="/scan" component={() => <Scan location={location} className="p-16 m-8 my-auto" elevation={0}/>}/>
-                    <Route path="/dashboard" component={() => <Dashboard location={location}/>}/>
+                    <Route exact path="/scan" component={() => <Scan location={location}/>}/>
+                    <Route path="/dashboard" component={() => <CurrentlyInLocation location={location}/>}/>
+                    <Route path="/students" component={() => <StudentList/>}/>
                     <Redirect from="*" to="/scan"/>
                 </Switch>
                 <div className="mt-auto text-center mb-3 bp3-text-muted">

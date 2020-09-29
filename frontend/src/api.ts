@@ -67,3 +67,7 @@ export async function getStudentsAtLocation(location_id: string): Promise<{stude
 export async function logoutStudent(student_id: string, location_id: string): Promise<TraceEvent> {
     return await sendApiRequest("POST", `student/${student_id}/logout`, {location_id: location_id});
 }
+
+export async function getStudents(): Promise<Student[]> {
+    return await sendApiRequest("GET", `student`);
+}

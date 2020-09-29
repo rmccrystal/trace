@@ -79,7 +79,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
         contentElem = <Submitted event={event!}/>
     }
 
-    return <Card {...props}>
+    return <Card {...props} className="p-16 m-8 my-auto">
         {contentElem}
     </Card>
 }
