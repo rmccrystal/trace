@@ -26,7 +26,8 @@ RUN go build ./cmd/api
 
 EXPOSE 8080
 
-# node sets a different entrypoint, set it to default
-ENTRYPOINT ["/bin/sh", "-c"]
+ENV LISTEN_ADDRESS 0.0.0.0:8080
+ENV MONGO_URI mongodb://localhost
+ENV DATABASE_NAME dev
 
 CMD ["./api"]
