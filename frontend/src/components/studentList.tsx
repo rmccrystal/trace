@@ -1,5 +1,16 @@
 import React, {useEffect, useState} from "react";
-import {Card, HTMLTable, ICardProps, Icon, IHTMLTableProps, Spinner, Tag, Tooltip} from "@blueprintjs/core";
+import {
+    Button,
+    Card,
+    FileInput,
+    HTMLTable,
+    ICardProps,
+    Icon,
+    IHTMLTableProps,
+    Spinner,
+    Tag,
+    Tooltip
+} from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
 
@@ -16,12 +27,22 @@ export default function StudentList({...props}: ICardProps) {
             .catch(onCatch)
     }, []);
 
-    return <Card className="mt-8 max-w-3xl w-full p-0" {...props}>
-        <StudentTable students={students} className="w-full" striped bordered loading={loading}/>
+    return <Card className="mt-8 max-w-3xl w-full" {...props}>
+        <div className="flex flex-row gap-2">
+            <FileInput className="w-full mb-4" text="Add students from CSV"/>
+            <Button className="w-full mb-4">Create new student</Button>
+        </div>
+        {
+            loading
+                ? <Spinner className="m-8"/>
+                : <Card className="p-0 w-full" elevation={1}>
+                    <StudentTable students={students} className="w-full" striped bordered/>
+                </Card>
+        }
     </Card>
 }
 
-function StudentTable({students, loading, ...props}: { students: Student[], loading: boolean } & IHTMLTableProps) {
+function StudentTable({students, loading, ...props}: { students: Student[], loading?: boolean } & IHTMLTableProps) {
     if (loading) {
         return <Spinner className="m-8"/>
     }
