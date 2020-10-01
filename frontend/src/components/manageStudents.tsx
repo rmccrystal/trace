@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {
     Button,
-    Card,
+    Card, Dialog,
     FileInput,
     HTMLTable,
     ICardProps,
@@ -13,10 +13,12 @@ import {
 } from "@blueprintjs/core";
 import {getStudents, Student} from "../api";
 import {onCatch} from "./util";
+import {CSVReader} from "react-papaparse";
 
-export default function StudentList({...props}: ICardProps) {
+export default function ManageStudents({...props}: ICardProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
     useEffect(() => {
         getStudents()
@@ -27,11 +29,13 @@ export default function StudentList({...props}: ICardProps) {
             .catch(onCatch)
     }, []);
 
-    return <Card className="mt-8 max-w-3xl w-full" {...props}>
+    return <Card className="m-8 max-w-3xl w-full" {...props}>
         <div className="flex flex-row gap-2">
-            <FileInput className="w-full mb-4" text="Add students from CSV"/>
-            <Button className="w-full mb-4">Create new student</Button>
+            <Button className="w-full mb-4" onClick={() => setUploadDialogOpen(true)}>Add students from CSV</Button>
         </div>
+        <UploadStudentCsvDialog isOpen={uploadDialogOpen} onSubmit={locations => {
+            console.log(locations.toString())
+        }} onClose={() => setUploadDialogOpen(false)}/>
         {
             loading
                 ? <Spinner className="m-8"/>
@@ -42,7 +46,21 @@ export default function StudentList({...props}: ICardProps) {
     </Card>
 }
 
-function StudentTable({students, loading, ...props}: { students: Student[], loading?: boolean } & IHTMLTableProps) {
+function UploadStudentCsvDialog({isOpen, onSubmit, onClose}: { isOpen: boolean, onClose: () => void, onSubmit: (students: Student[]) => void }) {
+    const handleFileLoad = (data: any) => {
+        console.log(data);
+    }
+
+    return <Dialog isOpen={isOpen} title="Upload students from CSV" onClose={onClose}>
+        <span className="m-8">
+            <CSVReader onFileLoad={handleFileLoad}>
+                <span>Drag CSV file here</span>
+            </CSVReader>
+        </span>
+    </Dialog>
+}
+
+export function StudentTable({students, loading, ...props}: { students: Student[], loading?: boolean } & IHTMLTableProps) {
     if (loading) {
         return <Spinner className="m-8"/>
     }

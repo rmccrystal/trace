@@ -6,7 +6,7 @@ import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
 import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
 import {getLocations, TraceLocation} from "./api";
 import useLocalStorage, {onCatchPrefix} from "./components/util";
-import StudentList from "./components/studentList";
+import ManageStudents from "./components/manageStudents";
 import CurrentlyInLocation from "./components/currentlyInLocation";
 import NewLocationPrompt from "./components/newLocationPrompt";
 
@@ -54,7 +54,7 @@ function App() {
                 <Route exact path="/scan" component={() => <Scan location={location!} elevation={1}/>}/>
                 <Route path="/dashboard"
                        component={() => <CurrentlyInLocation location={location!} elevation={1}/>}/>
-                <Route path="/students" component={() => <StudentList elevation={1}/>}/>
+                <Route path="/students" component={() => <ManageStudents elevation={1}/>}/>
                 <Redirect from="*" to="/scan"/>
             </Switch>
             <div className="mt-auto text-center mb-3 bp3-text-muted">
