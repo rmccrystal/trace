@@ -26,6 +26,16 @@ function App() {
         }
     }, [location, setLocationID])
 
+    useEffect(() => {
+        if (dark) {
+            document.body.classList.remove("bp3-light");
+            document.body.classList.add("bp3-dark");
+        } else {
+            document.body.classList.remove("bp3-dark");
+            document.body.classList.add("bp3-light");
+        }
+    }, [dark])
+
     const updateLocations = useCallback(() => {
         getLocations()
             .then(locations => {
@@ -66,7 +76,7 @@ function App() {
 
     return (
         <BrowserRouter>
-            <div className={`app flex flex-col items-center content-center ${dark ? "bp3-dark" : "bp3-light"}`}>
+            <div className={`app flex flex-col items-center content-center`}>
                 {innerElement}
             </div>
         </BrowserRouter>
