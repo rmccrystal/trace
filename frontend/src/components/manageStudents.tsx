@@ -91,7 +91,6 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void})
             // Parse csv into students
             const results = Papa.parse<CSVStudent>(text, {
                 header: true,
-                dynamicTyping: true,
             });
 
             if (results.errors.length > 0) {
