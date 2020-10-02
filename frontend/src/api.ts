@@ -79,3 +79,7 @@ export async function logoutAll(location_id: string): Promise<null> {
 export async function createNewLocation(location: Partial<TraceLocation>): Promise<TraceLocation> {
     return await sendApiRequest("POST", `location`, location);
 }
+
+export async function createStudents(students: Student[]): Promise<Student[]> {
+    return await sendApiRequest("POST", "students", students);
+}

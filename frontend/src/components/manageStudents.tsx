@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {FormEventHandler, useEffect, useState} from "react";
 import {
     Button,
     Card, Dialog,
@@ -11,31 +11,39 @@ import {
     Tag,
     Tooltip
 } from "@blueprintjs/core";
-import {getStudents, Student} from "../api";
+import {createStudents, getStudents, Student} from "../api";
 import {onCatch} from "./util";
-import {CSVReader} from "react-papaparse";
+import Papa from "papaparse";
 
 export default function ManageStudents({...props}: ICardProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
-    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-    useEffect(() => {
+    const updateStudents = () => {
         getStudents()
             .then(students => {
                 setStudents(students);
                 setLoading(false);
             })
             .catch(onCatch)
+    }
+
+    useEffect(() => {
+        updateStudents();
     }, []);
 
+    const onStudentUpload = (students: Student[]) => {
+        createStudents(students)
+            .then(() => {
+                updateStudents();
+            })
+            .catch(onCatch);
+    }
+
     return <Card className="m-8 max-w-3xl w-full" {...props}>
-        <div className="flex flex-row gap-2">
-            <Button className="w-full mb-4" onClick={() => setUploadDialogOpen(true)}>Add students from CSV</Button>
+        <div className="flex flex-row gap-2 mb-4">
+            <StudentCSVUpload onUpload={onStudentUpload} />
         </div>
-        <UploadStudentCsvDialog isOpen={uploadDialogOpen} onSubmit={locations => {
-            console.log(locations.toString())
-        }} onClose={() => setUploadDialogOpen(false)}/>
         {
             loading
                 ? <Spinner className="m-8"/>
@@ -46,18 +54,74 @@ export default function ManageStudents({...props}: ICardProps) {
     </Card>
 }
 
-function UploadStudentCsvDialog({isOpen, onSubmit, onClose}: { isOpen: boolean, onClose: () => void, onSubmit: (students: Student[]) => void }) {
-    const handleFileLoad = (data: any) => {
-        console.log(data);
+function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void}) {
+    const handleError = onCatch
+
+    const handleStudentUploadChange: React.FormEventHandler<HTMLInputElement> = event => {
+        const file = (event.target as any).files[0]
+        if (!file) {
+            return
+        }
+
+        const reader = new FileReader();
+        reader.readAsText(file);
+
+        reader.onerror = handleError;
+        reader.onload = ev => {
+            if (!ev.target) {
+                handleError("Error reading CSV file");
+                return
+            }
+
+            const text = ev.target.result?.toString();
+            if (!text) {
+                handleError("No file content found");
+                return
+            }
+            if (!text.split('\n')[0].startsWith("name,email,handle")) {
+                handleError("CSV header must be name,email,handle");
+                return
+            }
+
+            // We can't pass arrays as CSV so we will have to use a single handle
+            interface CSVStudent extends Student {
+                handle: string
+            }
+
+            // Parse csv into students
+            const results = Papa.parse<CSVStudent>(text, {
+                header: true,
+                dynamicTyping: true,
+            });
+
+            if (results.errors.length > 0) {
+                handleError(`Encountered one or more errors parsing the CSV file: ${
+                    results.errors.map(e => e.message).join(', ')
+                }`);
+                return
+            }
+
+            const csvStudents = results.data;
+            if (csvStudents.length === 0) {
+                handleError("No students were found in the CSV")
+                return
+            }
+
+            const students: Student[] = csvStudents.map(st => {
+                st.student_handles = [st.handle];
+                return st as Student;
+            })
+
+            onUpload(students);
+        }
     }
 
-    return <Dialog isOpen={isOpen} title="Upload students from CSV" onClose={onClose}>
-        <span className="m-8">
-            <CSVReader onFileLoad={handleFileLoad}>
-                <span>Drag CSV file here</span>
-            </CSVReader>
-        </span>
-    </Dialog>
+    return <FileInput
+        text="Upload students from CSV (header should be name,email,handle)"
+        className="w-full"
+        inputProps={{accept: ".csv"}}
+        onInputChange={handleStudentUploadChange}
+    />
 }
 
 export function StudentTable({students, loading, ...props}: { students: Student[], loading?: boolean } & IHTMLTableProps) {
@@ -87,6 +151,6 @@ function StudentRow({student}: { student: Student }) {
     return <tr>
         <td>{student.name || "-"}</td>
         <td>{student.email || "-"}</td>
-        <td>{student.student_handles.join(", ")}</td>
+        <td>{student.student_handles?.join(", ") || "-"}</td>
     </tr>
 }

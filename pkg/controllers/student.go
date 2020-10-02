@@ -97,6 +97,31 @@ func CreateStudent(c *gin.Context) {
 	Success(c, http.StatusCreated, student)
 }
 
+func CreateStudents(c *gin.Context) {
+	var students []database.Student
+	err := c.BindJSON(&students)
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+		return
+	}
+
+	for i := range students {
+		if students[i].Name == "" {
+			Errorf(c, http.StatusUnprocessableEntity, "no student name specified")
+			return
+		}
+
+		err = database.DB.CreateStudent(&students[i])
+		if err != nil {
+			Errorf(c, http.StatusInternalServerError, "internal server error creating student: %s", err)
+			return
+		}
+
+	}
+
+	Success(c, http.StatusCreated, students)
+}
+
 func GetStudentByID(c *gin.Context) {
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {

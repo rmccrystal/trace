@@ -33,6 +33,7 @@ func Listen(addr string, config *Config) error {
 	api.POST("location/:id/logoutAll", controllers.LogoutAllStudentsAtLocation)
 
 	api.POST("student", controllers.CreateStudent)
+	api.POST("students", controllers.CreateStudents)
 	api.GET("student", controllers.GetStudents)
 	api.GET("student/:id", controllers.GetStudentByID)
 	api.GET("student/:id/location", controllers.GetStudentLocation)
