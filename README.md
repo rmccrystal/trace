@@ -13,4 +13,11 @@ To run, cd into the repo directory and type in
 
 ```docker-compose up -d```
 
-The server should be running on port 80.
+The server should be running on port 80. To enable HTTP authentication, use
+the `USERNAME` and `PASSWORD` environment variables:
+
+```bash
+USERNAME=admin PASSWORD=password docker-compose up -d
+```
+
+The database data is stored in a [Docker volume](https://docs.docker.com/storage/volumes/).
