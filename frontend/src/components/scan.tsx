@@ -5,8 +5,9 @@ import {onCatch} from "./util";
 
 // An input that accepts data from the barcode scanner and sends it to the server
 export default function Scan({location, ...props}: { location: TraceLocation } & ICardProps) {
-    let [state, setState] = useState<"form" | "submitted" | "loading">("form");
+    let [state, setState] = useState<"form" | "submitted">("form");
     let [event, setEvent] = useState<TraceEvent | null>(null);
+    let [loading, setLoading] = useState(false);
 
     let [handle, setHandle] = useState("");
     const handleChange = (e: any) => {
@@ -16,10 +17,10 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
     // so we cancel the timeout if something else changes the state
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
     const submit = () => {
-        console.log('lo')
-        setState("loading");
+        setLoading(true)
         scan(handle, location.id)
             .then((ev) => {
+                setLoading(false);
                 setEvent(ev);
                 setState("submitted");
                 let timeout = setTimeout(() => {
@@ -28,6 +29,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
                 setFormStateTimeout(() => timeout)
             })
             .catch((e: any) => {
+                setLoading(false);
                 onCatch(e);
                 setState("form");
             })
@@ -60,7 +62,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
 
     // The element inside the container card
     let contentElem;
-    if (state === "form" || state === "loading") {
+    if (state === "form") {
         contentElem = <>
             <h1 className="bp3-heading">Please scan badge to sign into the {location.name}</h1>
             <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the proctor
@@ -72,7 +74,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
                 <InputGroup large onChange={handleChange} onKeyDown={handleKeyDown} placeholder=""
                             id="student-handle-input" leftIcon={"align-justify"} autoComplete={"off"} spellCheck={false}
                             value={handle} autoFocus inputRef={formInputRef}
-                            rightElement={<Button minimal rightIcon={"arrow-right"} loading={state === "loading"}
+                            rightElement={<Button minimal rightIcon={"arrow-right"} loading={loading}
                                                   onClick={submit}/>}/>
             </FormGroup>
         </>;
