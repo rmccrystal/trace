@@ -76,9 +76,7 @@ func CreateStudent(c *gin.Context) {
 
 func CreateStudents(c *gin.Context) {
 	var students []database.Student
-	err := c.BindJSON(&students)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &students); !success {
 		return
 	}
 

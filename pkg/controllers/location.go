@@ -15,9 +15,7 @@ func GetLocations(c *gin.Context) {
 
 func CreateLocation(c *gin.Context) {
 	var location database.Location
-	err := c.BindJSON(&location)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &location); !success {
 		return
 	}
 
@@ -67,11 +65,10 @@ func UpdateLocation(c *gin.Context) {
 	}
 
 	var location database.Location
-	err := c.BindJSON(&location)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &location); !success {
 		return
 	}
+
 
 	success = database.DB.UpdateLocation(id, &location)
 	if !success {

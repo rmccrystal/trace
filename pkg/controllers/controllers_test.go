@@ -52,19 +52,13 @@ func init() {
 		Email:          "baaron@gmail.com",
 		StudentHandles: []string{"testhandle"},
 	}
-	if err := TestDatabase.CreateStudent(TestStudent); err != nil {
-		logrus.Fatalf("Error adding student to the database: %s", err)
-		TestDatabase = nil
-	}
+	TestDatabase.CreateStudent(TestStudent)
 
 	TestLocation = &database.Location{
 		Name:    "Library",
 		Timeout: 1 * time.Hour,
 	}
-	if err := TestDatabase.CreateLocation(TestLocation); err != nil {
-		logrus.Fatalf("Error creating location: %s", err)
-		TestDatabase = nil
-	}
+	TestDatabase.CreateLocation(TestLocation)
 }
 
 func sendTestRequest(handler func(ctx *gin.Context), json []byte) (code int, body []byte) {
@@ -97,8 +91,7 @@ func TestOnScan(t *testing.T) {
 	var createdEvent database.Event
 	assert.NoError(t, json.Unmarshal(resp, &createdEvent), "failed to unmarshal response")
 
-	mostRecentEvent, found, err := TestDatabase.GetMostRecentEvent(TestStudent.ID)
-	assert.NoError(t, err, "error getting most recent event")
+	mostRecentEvent, found := TestDatabase.GetMostRecentEvent(TestStudent.ID)
 	assert.Truef(t, found, "no event was created")
 	assert.Equalf(t, mostRecentEvent.ID, createdEvent.ID, "the returned event id %s did not match the most recent event id %s", createdEvent.ID, mostRecentEvent.ID)
 	assert.Equal(t, createdEvent.EventType, database.EventEnter, "incorrect event type %s was created", createdEvent.EventType)

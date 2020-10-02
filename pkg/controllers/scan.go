@@ -16,10 +16,7 @@ func OnScan(c *gin.Context) {
 		LocationID    string `json:"location_id"`
 	}{}
 
-	if err := c.BindJSON(&scanRequest); err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
-		return
-	}
+	BindJSON(c, &scanRequest)
 	if scanRequest.StudentHandle == "" {
 		Errorf(c, http.StatusUnprocessableEntity, "no student handle specified")
 		return
