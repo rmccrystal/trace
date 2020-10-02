@@ -24,6 +24,8 @@ type EventSource int32
 const (
 	EventSourceScan      = iota // When a student scans in our out of a location
 	EventSourceAutoLeave        // When a student leaves the library by not singing out for a period of time
+	EventSourceLoggedOut		// When a student is manually logged out through the console
+	EventSourceLoggedOutAll		// When the log out all button is clicked
 )
 
 // An Event represents a student either entering or leaving a location
@@ -98,4 +100,23 @@ func (db *Database) GetMostRecentEventBetween(studentID primitive.ObjectID, minT
 	}
 
 	return event, true, nil
+}
+
+// GetAllEventsBetween gets all of the events between minTime and maxTime.
+// The events will be sorted by earliest to latest.
+func (db *Database) GetAllEventsBetween(minTime time.Time, maxTime time.Time) (events []Event, err error) {
+	cursor, err := db.Collections.Events.Find(context.TODO(), bson.D{
+		{"time", bson.M{"$lt": maxTime}},
+		{"time", bson.M{"$gt": minTime}},
+	}, &options.FindOptions{
+		Sort: bson.D{{"time", 1}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	events = make([]Event, 0)
+	err = cursor.All(nil, &events)
+
+	return
 }

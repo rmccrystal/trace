@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"trace/pkg/database"
 	"trace/pkg/trace"
 )
 
@@ -44,5 +45,39 @@ func OnScan(c *gin.Context) {
 		return
 	}
 
-	Success(c, http.StatusCreated, event)
+	// Get the location and the student name
+	location, found, err := database.DB.GetLocationByID(event.LocationID)
+	if err != nil {
+		log.Errorf("Internal error handling getting locationID %s: %s", event.LocationID, err)
+		Errorf(c, http.StatusInternalServerError, "internal server error: %s", err)
+		return
+	}
+	if !found {
+		log.Error("Could not find LocationID %s referenced by event ID %s", event.LocationID, event.ID)
+		Errorf(c, http.StatusInternalServerError, "Could not find LocationID %s referenced by event ID %s", event.LocationID, event.ID)
+		return
+	}
+
+	student, found, err := database.DB.GetStudentByID(event.StudentID)
+	if err != nil {
+		log.Errorf("Internal error handling getting studentID %s: %s", event.StudentID, err)
+		Errorf(c, http.StatusInternalServerError, "internal server error: %s", err)
+		return
+	}
+	if !found {
+		log.Error("Could not find StudentID %s referenced by event ID %s", event.StudentID, event.ID)
+		Errorf(c, http.StatusInternalServerError, "Could not find StudentID %s referenced by event ID %s", event.StudentID, event.ID)
+		return
+	}
+
+	// Append the location_name and the student_name
+	Success(c, http.StatusCreated, struct{
+		database.Event
+		LocationName string `json:"location_name"`
+		StudentName string `json:"student_name"`
+	}{
+		Event:        event,
+		LocationName: location.Name,
+		StudentName:  student.Name,
+	})
 }

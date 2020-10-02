@@ -118,13 +118,67 @@ func GetStudentsAtLocation(c *gin.Context) {
 	json := struct {
 		Time time.Time `json:"time"`
 	}{time.Now()}
-	_ = c.BindJSON(&json)
+	_ = c.ShouldBindJSON(&json)
 
-	students, err := trace.GetStudentsAtLocation(id, json.Time)
+	students, events, err := trace.GetStudentsAtLocation(id, json.Time)
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
 		return
 	}
 
-	Success(c, http.StatusOK, students)
+	/* Create a json response formatted as:
+	[{
+		"student": (student),
+		"event": (event)
+	}]
+	 */
+	var resp = make([]map[string]interface{}, 0)
+	for i := range students {
+		resp = append(resp, map[string]interface{}{
+			"student": students[i],
+			"event": events[i],
+		})
+	}
+
+	Success(c, http.StatusOK, resp)
+}
+
+func LogoutAllStudentsAtLocation(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+		return
+	}
+	location, found, err := database.DB.GetLocationByID(id)
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
+		return
+	}
+	if !found {
+		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+		return
+	}
+
+	students, _, err := trace.GetStudentsAtLocation(location.ID, time.Now())
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error getting students at location: %s", err)
+		return
+	}
+
+	for _, student := range students {
+		newEvent := database.Event{
+			LocationID: location.ID,
+			StudentID:  student.ID,
+			Time:       time.Now(),
+			EventType:  database.EventLeave,
+			Source:     database.EventSourceLoggedOutAll,
+		}
+		err = database.DB.CreateEvent(&newEvent)
+		if err != nil {
+			Errorf(c, http.StatusInternalServerError, "could not create new event: %s", err)
+			return
+		}
+	}
+
+	Success(c, http.StatusCreated, nil)
 }

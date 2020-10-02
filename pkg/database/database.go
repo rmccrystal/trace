@@ -66,8 +66,8 @@ func Connect(config Config) (*Database, error) {
 	}
 
 	// Try pinging the Database to see if it connects
-	if err := client.Ping(context.TODO(), nil); err != nil {
-		return nil, fmt.Errorf("could not ping Database: %s", err)
+	if err := client.Ping(ctx, nil); err != nil {
+		return nil, fmt.Errorf("could not ping database: %s", err)
 	}
 
 	log.Info("Connected to Database")

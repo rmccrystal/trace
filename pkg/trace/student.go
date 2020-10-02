@@ -8,68 +8,70 @@ import (
 	"trace/pkg/database"
 )
 
-// IsStudentAtLocation returns true if a student is at a location at a specific time
-func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.ObjectID, time time.Time) (bool, error) {
+// IsStudentAtLocation returns true and the corresponding event if a student is at a location at a specific time
+func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.ObjectID, time time.Time) (bool, database.Event, error) {
 	location, found, err := database.DB.GetLocationByID(locationID)
 	if err != nil {
-		return false, err
+		return false, database.Event{}, err
 	}
 	if !found {
-		return false, fmt.Errorf("could not find location")
+		return false, database.Event{}, fmt.Errorf("could not find location")
 	}
 
 	// Get the event between the time and time - the location timeout
 	lastEvent, found, err := database.DB.GetMostRecentEventBetween(studentID, time.Add(location.Timeout * -1), time)
 	if err != nil {
-		return false, err
+		return false, database.Event{}, err
 	}
 
 	if found && lastEvent.LocationID == locationID {
 		switch lastEvent.EventType {
 		case database.EventLeave:
-			return false, nil
+			return false, database.Event{}, nil
 		case database.EventEnter:
-			return true, nil
+			return true, lastEvent, nil
 		default:
-			return false, fmt.Errorf("invalid event type %d", lastEvent.EventType)
+			return false, lastEvent, fmt.Errorf("invalid event type %d", lastEvent.EventType)
 		}
 	}
 
 	// If there are no past events, assume the student is not at the location
-	return false, nil
+	return false, database.Event{}, nil
 }
 
-// GetStudentsAtLocation returns a list of all students at a location at a specific time.
+// GetStudentsAtLocation returns a list of all students at a location at a specific time and the corresponding events.
 // For most cases, the time should just be time.Now()
-func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]database.Student, error) {
+func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]database.Student, []database.Event, error) {
 	// iterate through all students and check if each one is at the location
 
 	studentsAtLocation := make([]database.Student, 0)
+	events := make([]database.Event, 0)
 
 	location, found, err := database.DB.GetLocationByID(locationID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !found {
-		return nil, fmt.Errorf("could not find location with id %s", locationID)
+		return nil, nil, fmt.Errorf("could not find location with id %s", locationID)
 	}
 
 	students, err := database.DB.GetStudents()
 	if err != nil {
-		return nil, fmt.Errorf("error getting students: %s", err)
+		return nil, nil, fmt.Errorf("error getting students: %s", err)
 	}
 
 	for _, student := range students {
-		atLocation, err := IsStudentAtLocation(student.ID, locationID, time)
+		atLocation, event, err := IsStudentAtLocation(student.ID, locationID, time)
 		if err != nil {
 			logrus.Errorf("Error checking if student %s is at location %s: %s", student.Name, location.Name, err)
 		}
 		if atLocation {
 			studentsAtLocation = append(studentsAtLocation, student)
+			events = append(events, event)
 		}
 	}
 
-	return studentsAtLocation, nil
+	return studentsAtLocation, events, nil
 }
 
 // GetStudentLocation returns the location a student is at. If the student is not at any location,

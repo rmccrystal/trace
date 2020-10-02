@@ -2,6 +2,7 @@ package trace
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -107,7 +108,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		t.Fatalf("Error creating enterEvent: %s", err)
 	}
 
-	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
+	studentAtLocation, _, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -127,7 +128,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		t.Fatalf("Error creating leaveEvent: %s", err)
 	}
 
-	studentAtLocation, err = IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
+	studentAtLocation, _, err = IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -155,7 +156,7 @@ func TestIsStudentAtLocationAtTime(t *testing.T) {
 	logrus.Debugf("Created enter event: %v+", enterEvent)
 
 	// Check if students were at a location an hour ago
-	studentAtLocation, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1*time.Hour))
+	studentAtLocation, _, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now().Add(-1*time.Hour))
 	if err != nil {
 		t.Fatalf("Error checking if student is at location: %s", err)
 	}
@@ -185,7 +186,7 @@ func TestGetStudentsAtLocation(t *testing.T) {
 	}
 	logrus.Debugf("Student %s entered %s", TestStudent.Name, TestLocation.Name)
 
-	studentsAtLocation, err := GetStudentsAtLocation(TestLocation.ID, time.Now())
+	studentsAtLocation, _, err := GetStudentsAtLocation(TestLocation.ID, time.Now())
 	if err != nil {
 		t.Fatalf("Error getting students at location: %s", err)
 	}
@@ -195,7 +196,7 @@ func TestGetStudentsAtLocation(t *testing.T) {
 	logrus.Infof("Found list of students at location %s: %v+", TestLocation.Name, studentsAtLocation)
 
 	// Check if there are students at the location 5 hours ago. There should be none
-	studentsAtLocation, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5*time.Hour))
+	studentsAtLocation, _, err = GetStudentsAtLocation(TestLocation.ID, time.Now().Add(-5*time.Hour))
 	if err != nil {
 		t.Fatalf("Error getting students at location: %s", err)
 	}
@@ -203,4 +204,55 @@ func TestGetStudentsAtLocation(t *testing.T) {
 		t.Fatalf("Found a student at location %s 5 hours ago when the enter event was created just now", TestLocation.Name)
 	}
 	logrus.Infof("Found no students at location %s 5 hours ago", TestLocation.Name)
+}
+
+func TestGenerateContactReport(t *testing.T) {
+	err := TestDatabase.Collections.Events.Drop(nil)
+	assert.NoError(t, err)
+
+	student1 := database.Student{
+		Name: "student1",
+	}
+	student2 := database.Student{
+		Name: "student2",
+	}
+
+	// Create the students
+	assert.NoError(t, TestDatabase.CreateStudent(&student1))
+	assert.NoError(t, TestDatabase.CreateStudent(&student2))
+
+	baseTime := time.Now()
+
+	// Create test events
+
+	// student1 entered 10 minutes ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student1.ID,
+		Time:       baseTime.Add(-10 * time.Minute),
+		EventType:  database.EventEnter,
+		Source:     0,
+	}))
+	// student2 entered 5 minutes ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student2.ID,
+		Time:       baseTime.Add(-5 * time.Minute),
+		EventType:  database.EventEnter,
+		Source:     0,
+	}))
+	// student1 left 1 minute ago
+	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+		LocationID: TestLocation.ID,
+		StudentID:  student1.ID,
+		Time:       baseTime.Add(-1 * time.Minute),
+		EventType:  database.EventLeave,
+		Source:     0,
+	}))
+	// time student 1 and student 2 have been together: 4 minutes
+
+	contactReport, err := GenerateContactReport(&student1, time.Unix(0, 0), baseTime, 1)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 4 * time.Minute, contactReport.Contacts[0][student2.ID])
 }

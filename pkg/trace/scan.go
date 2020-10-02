@@ -32,7 +32,7 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 		return database.Event{}, fmt.Errorf("student with handle %s was not found", studentHandle), nil
 	}
 
-	studentAtLocation, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
+	studentAtLocation, _, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
 	if err != nil {
 		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s", student.Name, location.Name)
 	}
@@ -62,13 +62,13 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 	// Log the event
 	var evName string
 	if eventType == database.EventEnter {
-		evName = "entered"
+		evName = "into"
 	} else if eventType == database.EventLeave {
-		evName = "left"
+		evName = "out of"
 	}
 	logrus.WithFields(logrus.Fields{
 		"studentName": student.Name, "locationName": location.Name,
-	}).Debugf("Student %s the library", evName)
+	}).Debugf("Student scanned %s the library", evName)
 
 	return event, nil, nil
 }

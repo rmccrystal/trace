@@ -19,6 +19,62 @@ func GetStudents(c *gin.Context) {
 	Success(c, http.StatusOK, locations)
 }
 
+func LogoutStudent(c *gin.Context) {
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+		return
+	}
+	student, found, err := database.DB.GetStudentByID(id)
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
+		return
+	}
+	if !found {
+		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+		return
+	}
+
+	body := struct{
+		LocationID string `json:"location_id"`
+	}{}
+	err = c.BindJSON(&body)
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+		return
+	}
+
+	locationID, err := primitive.ObjectIDFromHex(body.LocationID)
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+		return
+	}
+	location, found, err := database.DB.GetLocationByID(locationID)
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
+		return
+	}
+	if !found {
+		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+		return
+	}
+
+	newEvent := database.Event{
+		LocationID: location.ID,
+		StudentID:  student.ID,
+		Time:       time.Now(),
+		EventType:  database.EventLeave,
+		Source:     database.EventSourceLoggedOut,
+	}
+	err = database.DB.CreateEvent(&newEvent)
+	if err != nil {
+		Errorf(c, http.StatusInternalServerError, "could not create new event: %s", err)
+		return
+	}
+
+	Success(c, http.StatusCreated, newEvent)
+}
+
 func CreateStudent(c *gin.Context) {
 	var student database.Student
 	err := c.BindJSON(&student)
@@ -39,6 +95,31 @@ func CreateStudent(c *gin.Context) {
 	}
 
 	Success(c, http.StatusCreated, student)
+}
+
+func CreateStudents(c *gin.Context) {
+	var students []database.Student
+	err := c.BindJSON(&students)
+	if err != nil {
+		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+		return
+	}
+
+	for i := range students {
+		if students[i].Name == "" {
+			Errorf(c, http.StatusUnprocessableEntity, "no student name specified")
+			return
+		}
+
+		err = database.DB.CreateStudent(&students[i])
+		if err != nil {
+			Errorf(c, http.StatusInternalServerError, "internal server error creating student: %s", err)
+			return
+		}
+
+	}
+
+	Success(c, http.StatusCreated, students)
 }
 
 func GetStudentByID(c *gin.Context) {

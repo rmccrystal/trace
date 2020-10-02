@@ -1,0 +1,22 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+
+.app {
+  min-height: 100%;
+}
+
+$transition-time: 75ms;
+
+//noinspection CssOverwrittenProperties   // So we don't get an error for different transitions for background and all
+.bp3-dark {
+  background-color: $dark-gray1;
+  transition: all $transition-time !important;
+  transition: background-color $transition-time;
+
+}
+
+//noinspection CssOverwrittenProperties
+.bp3-light {
+  background-color: $light-gray4;
+  transition: all $transition-time !important;
+  transition: background-color $transition-time;
+}
