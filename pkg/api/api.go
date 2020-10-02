@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"os"
 	"trace/pkg/controllers"
 	"trace/pkg/database"
 )
@@ -19,6 +20,15 @@ func Listen(addr string, config *Config) error {
 	GlobalConfig = config
 
 	r := gin.Default()
+
+	username := os.Getenv("USERNAME")
+	password := os.Getenv("PASSWORD")
+
+	if username != "" && password != "" {
+		r.Use(gin.BasicAuth(gin.Accounts{
+			username: password,
+		}))
+	}
 
 	api := r.Group("/api")
 
