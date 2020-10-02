@@ -49,18 +49,11 @@ func TestDatabase_GetMostRecentEvent(t *testing.T) {
 		StudentID: studentID,
 	}
 
-	if err := TestDatabase.CreateEvent(&event1); err != nil {
-		t.Fatalf("Error creating event: %s", err)
-	}
-	if err := TestDatabase.CreateEvent(&event2); err != nil {
-		t.Fatalf("Error creating event: %s", err)
-	}
+	TestDatabase.CreateEvent(&event1)
+	TestDatabase.CreateEvent(&event2)
 
 	// Get the most recent event with an empty student ID
-	mostRecentEvent, ok, err := TestDatabase.GetMostRecentEvent(studentID)
-	if err != nil {
-		t.Fatalf("Error getting most recent event: %s", err)
-	}
+	mostRecentEvent, ok := TestDatabase.GetMostRecentEvent(studentID)
 	if !ok {
 		t.Fatalf("Could not find the most recent event")
 	}
@@ -83,15 +76,10 @@ func TestDatabase_GetStudentByHandle(t *testing.T) {
 		Email:          "baaron@gmail.com",
 		StudentHandles: []string{"12345", "testid1"},
 	}
-	if err := TestDatabase.CreateStudent(&student); err != nil {
-		t.Fatalf("Error adding student to the database: %s", err)
-	}
+	TestDatabase.CreateStudent(&student)
 
 	handle := "12345"
-	foundStudent, found, err := TestDatabase.GetStudentByHandle(handle)
-	if err != nil {
-		t.Fatalf("Error getting student by handle: %s", err)
-	}
+	foundStudent, found := TestDatabase.GetStudentByHandle(handle)
 	if !found {
 		t.Fatalf("Did not find any students by the handle %s", handle)
 	}
