@@ -1,16 +1,5 @@
-import React, {FormEventHandler, useEffect, useState} from "react";
-import {
-    Button,
-    Card, Dialog,
-    FileInput,
-    HTMLTable,
-    ICardProps,
-    Icon,
-    IHTMLTableProps,
-    Spinner,
-    Tag,
-    Tooltip
-} from "@blueprintjs/core";
+import React, {useEffect, useState} from "react";
+import {Card, FileInput, HTMLTable, ICardProps, Icon, IHTMLTableProps, Spinner, Tooltip} from "@blueprintjs/core";
 import {createStudents, getStudents, Student} from "../api";
 import {onCatch} from "./util";
 import Papa from "papaparse";

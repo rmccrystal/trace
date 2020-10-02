@@ -2,7 +2,7 @@ import React, {Dispatch, SetStateAction, useEffect, useState} from "react";
 import * as Api from "../api";
 import {onCatch} from "./util";
 import {ItemPredicate, ItemRenderer, ItemsEqualComparator, Select} from "@blueprintjs/select";
-import {Button, MenuItem, Navbar} from "@blueprintjs/core";
+import {Button, MenuItem} from "@blueprintjs/core";
 
 const LocationSelectElem = Select.ofType<Api.TraceLocation>();
 

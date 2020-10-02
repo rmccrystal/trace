@@ -1,9 +1,9 @@
-import React, {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import './app.scss';
 import Scan from './components/scan';
 import Nav from "./components/nav";
-import {Card, FocusStyleManager, Spinner} from "@blueprintjs/core";
-import {Switch, Route, Redirect, BrowserRouter} from "react-router-dom";
+import {FocusStyleManager, Spinner} from "@blueprintjs/core";
+import {BrowserRouter, Redirect, Route, Switch} from "react-router-dom";
 import {getLocations, TraceLocation} from "./api";
 import useLocalStorage, {onCatchPrefix} from "./components/util";
 import ManageStudents from "./components/manageStudents";

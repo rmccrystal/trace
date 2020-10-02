@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from "react";
-import {Navbar, Button} from "@blueprintjs/core";
+import React from "react";
+import {Button, IconName, Navbar} from "@blueprintjs/core";
 import LocationSelect from "./locationSelect";
 import * as Api from "../api";
 import {Link} from "react-router-dom";
-import {IconName} from "@blueprintjs/core";
 
 export interface NavProps {
     location: Api.TraceLocation,
