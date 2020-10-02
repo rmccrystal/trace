@@ -23,14 +23,8 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 		return nil, errors.New("maxDepth must greater than 0")
 	}
 
-	events, err := database.DB.GetAllEventsBetween(startTime, endTime)
-	if err != nil {
-		return nil, err
-	}
-	students, err := database.DB.GetStudents()
-	if err != nil {
-		return nil, err
-	}
+	events := database.DB.GetAllEventsBetween(startTime, endTime)
+	students := database.DB.GetStudents()
 
 	report := ContactReport{
 		TargetStudent: targetStudent,

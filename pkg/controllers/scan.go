@@ -46,24 +46,14 @@ func OnScan(c *gin.Context) {
 	}
 
 	// Get the location and the student name
-	location, found, err := database.DB.GetLocationByID(event.LocationID)
-	if err != nil {
-		log.Errorf("Internal error handling getting locationID %s: %s", event.LocationID, err)
-		Errorf(c, http.StatusInternalServerError, "internal server error: %s", err)
-		return
-	}
+	location, found := database.DB.GetLocationByID(event.LocationID)
 	if !found {
 		log.Error("Could not find LocationID %s referenced by event ID %s", event.LocationID, event.ID)
 		Errorf(c, http.StatusInternalServerError, "Could not find LocationID %s referenced by event ID %s", event.LocationID, event.ID)
 		return
 	}
 
-	student, found, err := database.DB.GetStudentByID(event.StudentID)
-	if err != nil {
-		log.Errorf("Internal error handling getting studentID %s: %s", event.StudentID, err)
-		Errorf(c, http.StatusInternalServerError, "internal server error: %s", err)
-		return
-	}
+	student, found := database.DB.GetStudentByID(event.StudentID)
 	if !found {
 		log.Error("Could not find StudentID %s referenced by event ID %s", event.StudentID, event.ID)
 		Errorf(c, http.StatusInternalServerError, "Could not find StudentID %s referenced by event ID %s", event.StudentID, event.ID)

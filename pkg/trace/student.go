@@ -10,19 +10,13 @@ import (
 
 // IsStudentAtLocation returns true and the corresponding event if a student is at a location at a specific time
 func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.ObjectID, time time.Time) (bool, database.Event, error) {
-	location, found, err := database.DB.GetLocationByID(locationID)
-	if err != nil {
-		return false, database.Event{}, err
-	}
+	location, found := database.DB.GetLocationByID(locationID)
 	if !found {
 		return false, database.Event{}, fmt.Errorf("could not find location")
 	}
 
 	// Get the event between the time and time - the location timeout
-	lastEvent, found, err := database.DB.GetMostRecentEventBetween(studentID, time.Add(location.Timeout * -1), time)
-	if err != nil {
-		return false, database.Event{}, err
-	}
+	lastEvent, found := database.DB.GetMostRecentEventBetween(studentID, time.Add(location.Timeout * -1), time)
 
 	if found && lastEvent.LocationID == locationID {
 		switch lastEvent.EventType {
@@ -47,18 +41,12 @@ func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]dat
 	studentsAtLocation := make([]database.Student, 0)
 	events := make([]database.Event, 0)
 
-	location, found, err := database.DB.GetLocationByID(locationID)
-	if err != nil {
-		return nil, nil, err
-	}
+	location, found := database.DB.GetLocationByID(locationID)
 	if !found {
 		return nil, nil, fmt.Errorf("could not find location with id %s", locationID)
 	}
 
-	students, err := database.DB.GetStudents()
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting students: %s", err)
-	}
+	students := database.DB.GetStudents()
 
 	for _, student := range students {
 		atLocation, event, err := IsStudentAtLocation(student.ID, locationID, time)
@@ -77,27 +65,18 @@ func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]dat
 // GetStudentLocation returns the location a student is at. If the student is not at any location,
 // found will be false.
 func GetStudentLocation(studentID primitive.ObjectID, time time.Time) (location database.Location, found bool, err error) {
-	student, found, err := database.DB.GetStudentByID(studentID)
-	if err != nil {
-		return database.Location{}, false, err
-	}
+	student, found := database.DB.GetStudentByID(studentID)
 	if !found {
 		return database.Location{}, false, fmt.Errorf("could not find student with id %s", studentID.Hex())
 	}
 
-	lastEvent, found, err := database.DB.GetMostRecentEvent(studentID)
-	if err != nil {
-		return database.Location{}, false, fmt.Errorf("error getting most recent event: %s", err)
-	}
+	lastEvent, found := database.DB.GetMostRecentEvent(studentID)
 	if !found {
 		// If there is no most recent event for this student, we can assume they are not at a location
 		return database.Location{}, false, nil
 	}
 
-	location, found, err = database.DB.GetLocationByID(lastEvent.ID)
-	if err != nil {
-		return database.Location{}, false, fmt.Errorf("error getting location: %s", err)
-	}
+	location, found = database.DB.GetLocationByID(lastEvent.ID)
 	if !found {
 		return database.Location{}, false, fmt.Errorf("could not find location refrenced in student id %s", student.ID)
 	}
