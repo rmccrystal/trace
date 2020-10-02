@@ -21,3 +21,12 @@ USERNAME=admin PASSWORD=password docker-compose up -d
 ```
 
 The database data is stored in a [Docker volume](https://docs.docker.com/storage/volumes/).
+
+## Screenshots
+[Scan](/.screenshots/scan.png?raw=true)
+
+[Submitted](/.screenshots/submitted.png?raw=true)
+
+[Manage students](/.screenshots/manageStudents.png?raw=true)
+
+[Students at location](/.screenshots/studentsAtLocation.png?raw=true)
