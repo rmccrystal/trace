@@ -19,47 +19,45 @@ type Student struct {
 
 // CreateStudent creates a student and adds it to the database. The
 // ID element of the newly created Student will be set if it is successful
-func (db *Database) CreateStudent(student *Student) error {
+func (db *Database) CreateStudent(student *Student) {
 	result, err := db.Collections.Students.InsertOne(context.TODO(), student)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	student.ID = result.InsertedID.(primitive.ObjectID)
-
-	return nil
 }
 
 // GetStudents returns a list of all students stored in the database.
-func (db *Database) GetStudents() ([]Student, error) {
+func (db *Database) GetStudents() []Student {
 	cur, err := db.Collections.Students.Find(context.TODO(), bson.D{})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	students := make([]Student, 0)
 	if err := cur.All(context.TODO(), &students); err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return students, nil
+	return students
 }
 
 // GetStudentByID gets a student by their ID. If not found, found will be false and
-// err will be nil. If there is an error retrieving the student, it will be returned
-func (db *Database) GetStudentByID(id primitive.ObjectID) (student Student, found bool, err error) {
+// err will be nil.
+func (db *Database) GetStudentByID(id primitive.ObjectID) (student Student, found bool) {
 	result := db.Collections.Students.FindOne(nil, bson.M{"_id": id})
 
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return Student{}, false, nil
+			return Student{}, false
 		}
-		return Student{}, false, err
+		panic(err)
 	}
 
 	if err := result.Decode(&student); err != nil {
-		return Student{}, true, err
+		panic(err)
 	}
 
 	found = true
@@ -67,53 +65,53 @@ func (db *Database) GetStudentByID(id primitive.ObjectID) (student Student, foun
 }
 
 // DeleteStudent deletes a student from the database by ID. If the student could not be
-// found, success will be false but err will be nil.
-func (db *Database) DeleteStudent(id primitive.ObjectID) (success bool, err error) {
+// found, success will be false
+func (db *Database) DeleteStudent(id primitive.ObjectID) bool {
 	result := db.Collections.Students.FindOneAndDelete(nil, bson.M{"_id": id})
 
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return false, nil
+			return false
 		}
-		return false, err
+		panic(err)
 	}
-	return true, nil
+	return true
 }
 
 // UpdateStudent finds a student by its ID and updates it
-func (db *Database) UpdateStudent(id primitive.ObjectID, newStudent *Student) (success bool, err error) {
+func (db *Database) UpdateStudent(id primitive.ObjectID, newStudent *Student) bool {
 	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": newStudent})
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return false, nil
+			return false
 		}
-		return false, err
+		panic(err)
 	}
 
 	err = result.Decode(newStudent)
-	success = true
-	return
+
+	return true
 }
 
 // GetStudentByHandle gets a student by the StudentHandles member. If the
 // student is found, found will be true. If there is an error getting the student,
 // it will be returned. Not that this error will not contain the not found error
-func (db *Database) GetStudentByHandle(handle string) (student Student, found bool, err error) {
+func (db *Database) GetStudentByHandle(handle string) (student Student, found bool) {
 	result := db.Collections.Students.FindOne(context.TODO(), bson.M{"studenthandles": bson.M{"$elemMatch": bson.M{"$eq": handle}}})
 
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		// If the student cannot be found
 		if err == mongo.ErrNoDocuments {
-			return Student{}, false, nil
+			return Student{}, false
 		}
-		return Student{}, false, err
+		panic(err)
 	}
 
 	if err := result.Decode(&student); err != nil {
-		return Student{}, true, err
+		panic(err)
 	}
 
 	found = true
