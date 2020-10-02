@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"os"
 	"trace/pkg/controllers"
 	"trace/pkg/database"
@@ -25,6 +26,11 @@ func Listen(addr string, config *Config) error {
 	password := os.Getenv("PASSWORD")
 
 	if username != "" && password != "" {
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+			"password": password,
+		}).Debugf("Enabling authentication")
+
 		r.Use(gin.BasicAuth(gin.Accounts{
 			username: password,
 		}))

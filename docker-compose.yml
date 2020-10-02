@@ -4,10 +4,12 @@ services:
   trace:
     build: .
     ports:
-    - "80:8080"
+      - "80:8080"
     environment:
       MONGO_URI: mongodb://mongo
       DATABASE_NAME: prod
+      USERNAME: $USERNAME
+      PASSWORD: $PASSWORD
     restart: unless-stopped
     networks:
       - trace-network
@@ -16,9 +18,13 @@ services:
   mongo:
     image: mongo
     restart: unless-stopped
+    volumes:
+      - trace-data:/data/db
     networks:
       - trace-network
 
+volumes:
+  trace-data:
 networks:
   trace-network:
     driver: bridge
