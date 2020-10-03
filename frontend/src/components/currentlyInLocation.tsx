@@ -15,7 +15,7 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
                 setLoading(false);
                 setLogoutAllLoading(false);
             })
-            .catch(onCatchPrefix(`Error getting student list`));
+            .catch(onCatchPrefix(`Error getting student list: `));
     }, [location])
 
     useEffect(() => {

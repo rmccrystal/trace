@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 	"trace/pkg/database"
@@ -10,20 +9,13 @@ import (
 )
 
 func GetLocations(c *gin.Context) {
-	locations, err := database.DB.GetLocations()
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal server error getting locations: %s", locations)
-		return
-	}
-
+	locations := database.DB.GetLocations()
 	Success(c, http.StatusOK, locations)
 }
 
 func CreateLocation(c *gin.Context) {
 	var location database.Location
-	err := c.BindJSON(&location)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &location); !success {
 		return
 	}
 
@@ -32,26 +24,17 @@ func CreateLocation(c *gin.Context) {
 		return
 	}
 
-	err = database.DB.CreateLocation(&location)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal server error creating location: %s", err)
-		return
-	}
-
+	database.DB.CreateLocation(&location)
 	Success(c, http.StatusCreated, location)
 }
 
 func GetLocationByID(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
-	location, found, err := database.DB.GetLocationByID(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+
+	location, found := database.DB.GetLocationByID(id)
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
 		return
@@ -61,17 +44,12 @@ func GetLocationByID(c *gin.Context) {
 }
 
 func DeleteLocation(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
 
-	success, err := database.DB.DeleteLocation(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error deleting location: %s", err)
-		return
-	}
+	success = database.DB.DeleteLocation(id)
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
 		return
@@ -81,24 +59,18 @@ func DeleteLocation(c *gin.Context) {
 }
 
 func UpdateLocation(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
 
 	var location database.Location
-	err = c.BindJSON(&location)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &location); !success {
 		return
 	}
 
-	success, err := database.DB.UpdateLocation(id, &location)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error updating location: %s", err)
-		return
-	}
+
+	success = database.DB.UpdateLocation(id, &location)
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
 		return
@@ -108,9 +80,8 @@ func UpdateLocation(c *gin.Context) {
 }
 
 func GetStudentsAtLocation(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
 
@@ -144,16 +115,12 @@ func GetStudentsAtLocation(c *gin.Context) {
 }
 
 func LogoutAllStudentsAtLocation(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
-	location, found, err := database.DB.GetLocationByID(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+
+	location, found := database.DB.GetLocationByID(id)
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
 		return
@@ -173,11 +140,7 @@ func LogoutAllStudentsAtLocation(c *gin.Context) {
 			EventType:  database.EventLeave,
 			Source:     database.EventSourceLoggedOutAll,
 		}
-		err = database.DB.CreateEvent(&newEvent)
-		if err != nil {
-			Errorf(c, http.StatusInternalServerError, "could not create new event: %s", err)
-			return
-		}
+		database.DB.CreateEvent(&newEvent)
 	}
 
 	Success(c, http.StatusCreated, nil)

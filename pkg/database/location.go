@@ -19,7 +19,7 @@ type Location struct {
 
 // CreateLocation creates a location and adds it to the database. The
 // ID element of the Location will be set if it is successful
-func (db *Database) CreateLocation(location *Location) error {
+func (db *Database) CreateLocation(location *Location) {
 	if location.Timeout == 0 {
 		logrus.Warnf("Created a location with 0 timeout. Defaulting to 2 hours")
 		location.Timeout = 2 * time.Hour
@@ -27,29 +27,27 @@ func (db *Database) CreateLocation(location *Location) error {
 
 	result, err := db.Collections.Locations.InsertOne(context.TODO(), location)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	location.ID = result.InsertedID.(primitive.ObjectID)
-
-	return nil
 }
 
 // GetLocationByID gets a location by its ID. If not found, found will be false and
-// err will be nil. If there is an error retrieving the location, it will be returned
-func (db *Database) GetLocationByID(id primitive.ObjectID) (location Location, found bool, err error) {
+// err will be nil.
+func (db *Database) GetLocationByID(id primitive.ObjectID) (location Location, found bool) {
 	result := db.Collections.Locations.FindOne(nil, bson.M{"_id": id})
 
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return Location{}, false, nil
+			return Location{}, false
 		}
-		return Location{}, false, err
+		panic(err)
 	}
 
 	if err := result.Decode(&location); err != nil {
-		return Location{}, true, err
+		panic(err)
 	}
 
 	found = true
@@ -57,47 +55,50 @@ func (db *Database) GetLocationByID(id primitive.ObjectID) (location Location, f
 }
 
 // GetLocations returns a list of all locations stored in the database.
-func (db *Database) GetLocations() ([]Location, error) {
+func (db *Database) GetLocations() []Location {
 	cur, err := db.Collections.Locations.Find(context.TODO(), bson.D{})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	locations := make([]Location, 0)
 	if err := cur.All(context.TODO(), &locations); err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return locations, nil
+	return locations
 }
 
 // DeleteLocation deletes a location from the database by ID. If the location could not be
-// found, success will be false but err will be nil.
-func (db *Database) DeleteLocation(id primitive.ObjectID) (success bool, err error) {
+// found, success will be false
+func (db *Database) DeleteLocation(id primitive.ObjectID) bool {
 	result := db.Collections.Locations.FindOneAndDelete(nil, bson.M{"_id": id})
 
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return false, nil
+			return false
 		}
-		return false, err
+		panic(err)
 	}
-	return true, nil
+
+	return true
 }
 
 // UpdateLocation finds a location by its ID and updates it
-func (db *Database) UpdateLocation(id primitive.ObjectID, newLocation *Location) (success bool, err error) {
+func (db *Database) UpdateLocation(id primitive.ObjectID, newLocation *Location) bool {
 	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": newLocation})
-	err = result.Err()
+	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return false, nil
+			return false
 		}
-		return false, err
+		panic(err)
 	}
 
-	err = result.Decode(newLocation)
-	success = true
-	return
+	if err := result.Decode(newLocation); err != nil {
+		panic(err)
+	}
+
+	return true
 }

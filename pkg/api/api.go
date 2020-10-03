@@ -22,6 +22,8 @@ func Listen(addr string, config *Config) error {
 
 	r := gin.Default()
 
+	r.Use(gin.Recovery())
+
 	username := os.Getenv("USERNAME")
 	password := os.Getenv("PASSWORD")
 

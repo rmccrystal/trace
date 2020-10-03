@@ -16,25 +16,19 @@ import (
 // or any other unexpected error, it will be returned in err
 func HandleScan(locationID string, studentHandle string) (ev database.Event, userError error, err error) {
 	locationObjectID, _ := primitive.ObjectIDFromHex(locationID)
-	location, found, err := database.DB.GetLocationByID(locationObjectID)
-	if err != nil {
-		return database.Event{}, nil, err
-	}
+	location, found := database.DB.GetLocationByID(locationObjectID)
 	if !found {
 		return database.Event{}, fmt.Errorf("location with ID %s was not found", locationID), nil
 	}
 
-	student, found, err := database.DB.GetStudentByHandle(studentHandle)
-	if err != nil {
-		return database.Event{}, nil, err
-	}
+	student, found := database.DB.GetStudentByHandle(studentHandle)
 	if !found {
 		return database.Event{}, fmt.Errorf("student with handle %s was not found", studentHandle), nil
 	}
 
 	studentAtLocation, _, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
 	if err != nil {
-		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s", student.Name, location.Name)
+		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s: %s", student.Name, location.Name, err)
 	}
 
 	// TODO: Create an implicit logout event when someone logs in again to a new location
@@ -55,9 +49,7 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 		Source:     database.EventSourceScan,
 	}
 
-	if err := database.DB.CreateEvent(&event); err != nil {
-		return database.Event{}, nil, fmt.Errorf("error creating event: %s", err)
-	}
+	database.DB.CreateEvent(&event)
 
 	// Log the event
 	var evName string

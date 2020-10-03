@@ -45,19 +45,13 @@ func init() {
 		Email:          "baaron@gmail.com",
 		StudentHandles: []string{"12345", "testid1"},
 	}
-	if err := TestDatabase.CreateStudent(TestStudent); err != nil {
-		logrus.Fatalf("Error adding student to the database: %s", err)
-		TestDatabase = nil
-	}
+	TestDatabase.CreateStudent(TestStudent)
 
 	TestLocation = &database.Location{
 		Name:    "Library",
 		Timeout: 1 * time.Hour,
 	}
-	if err := TestDatabase.CreateLocation(TestLocation); err != nil {
-		logrus.Fatalf("Error creating location: %s", err)
-		TestDatabase = nil
-	}
+	TestDatabase.CreateLocation(TestLocation)
 }
 
 func TestHandleScan(t *testing.T) {
@@ -104,9 +98,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		Time:       time.Now(),
 		EventType:  database.EventEnter,
 	}
-	if err := TestDatabase.CreateEvent(&enterEvent); err != nil {
-		t.Fatalf("Error creating enterEvent: %s", err)
-	}
+	TestDatabase.CreateEvent(&enterEvent)
 
 	studentAtLocation, _, err := IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
@@ -124,9 +116,7 @@ func TestIsStudentAtLocation(t *testing.T) {
 		Time:       time.Now(),
 		EventType:  database.EventLeave,
 	}
-	if err := TestDatabase.CreateEvent(&leaveEvent); err != nil {
-		t.Fatalf("Error creating leaveEvent: %s", err)
-	}
+	TestDatabase.CreateEvent(&leaveEvent)
 
 	studentAtLocation, _, err = IsStudentAtLocation(TestStudent.ID, TestLocation.ID, time.Now())
 	if err != nil {
@@ -150,9 +140,8 @@ func TestIsStudentAtLocationAtTime(t *testing.T) {
 		Time:       time.Now(),
 		EventType:  database.EventEnter,
 	}
-	if err := TestDatabase.CreateEvent(&enterEvent); err != nil {
-		t.Fatalf("Error creating enterEvent: %s", err)
-	}
+
+	TestDatabase.CreateEvent(&enterEvent)
 	logrus.Debugf("Created enter event: %v+", enterEvent)
 
 	// Check if students were at a location an hour ago
@@ -181,9 +170,9 @@ func TestGetStudentsAtLocation(t *testing.T) {
 		Time:       time.Now(),
 		EventType:  database.EventEnter,
 	}
-	if err := TestDatabase.CreateEvent(&enterEvent); err != nil {
-		t.Fatalf("Error creating enterEvent: %s", err)
-	}
+
+	TestDatabase.CreateEvent(&enterEvent)
+
 	logrus.Debugf("Student %s entered %s", TestStudent.Name, TestLocation.Name)
 
 	studentsAtLocation, _, err := GetStudentsAtLocation(TestLocation.ID, time.Now())
@@ -218,37 +207,37 @@ func TestGenerateContactReport(t *testing.T) {
 	}
 
 	// Create the students
-	assert.NoError(t, TestDatabase.CreateStudent(&student1))
-	assert.NoError(t, TestDatabase.CreateStudent(&student2))
+	TestDatabase.CreateStudent(&student1)
+	TestDatabase.CreateStudent(&student2)
 
 	baseTime := time.Now()
 
 	// Create test events
 
 	// student1 entered 10 minutes ago
-	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+	TestDatabase.CreateEvent(&database.Event{
 		LocationID: TestLocation.ID,
 		StudentID:  student1.ID,
 		Time:       baseTime.Add(-10 * time.Minute),
 		EventType:  database.EventEnter,
 		Source:     0,
-	}))
+	})
 	// student2 entered 5 minutes ago
-	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+	TestDatabase.CreateEvent(&database.Event{
 		LocationID: TestLocation.ID,
 		StudentID:  student2.ID,
 		Time:       baseTime.Add(-5 * time.Minute),
 		EventType:  database.EventEnter,
 		Source:     0,
-	}))
+	})
 	// student1 left 1 minute ago
-	assert.NoError(t, TestDatabase.CreateEvent(&database.Event{
+	TestDatabase.CreateEvent(&database.Event{
 		LocationID: TestLocation.ID,
 		StudentID:  student1.ID,
 		Time:       baseTime.Add(-1 * time.Minute),
 		EventType:  database.EventLeave,
 		Source:     0,
-	}))
+	})
 	// time student 1 and student 2 have been together: 4 minutes
 
 	contactReport, err := GenerateContactReport(&student1, time.Unix(0, 0), baseTime, 1)

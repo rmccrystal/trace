@@ -10,26 +10,17 @@ import (
 )
 
 func GetStudents(c *gin.Context) {
-	locations, err := database.DB.GetStudents()
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal server error getting students: %s", locations)
-		return
-	}
-
+	locations := database.DB.GetStudents()
 	Success(c, http.StatusOK, locations)
 }
 
 func LogoutStudent(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
-	student, found, err := database.DB.GetStudentByID(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+
+	student, found := database.DB.GetStudentByID(id)
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
 		return
@@ -38,22 +29,17 @@ func LogoutStudent(c *gin.Context) {
 	body := struct{
 		LocationID string `json:"location_id"`
 	}{}
-	err = c.BindJSON(&body)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &body); !success {
 		return
 	}
 
+	// TODO: use GetIDParam or modify the func?
 	locationID, err := primitive.ObjectIDFromHex(body.LocationID)
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
 		return
 	}
-	location, found, err := database.DB.GetLocationByID(locationID)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+	location, found := database.DB.GetLocationByID(locationID)
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
 		return
@@ -66,20 +52,15 @@ func LogoutStudent(c *gin.Context) {
 		EventType:  database.EventLeave,
 		Source:     database.EventSourceLoggedOut,
 	}
-	err = database.DB.CreateEvent(&newEvent)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "could not create new event: %s", err)
-		return
-	}
+	database.DB.CreateEvent(&newEvent)
 
 	Success(c, http.StatusCreated, newEvent)
 }
 
 func CreateStudent(c *gin.Context) {
 	var student database.Student
-	err := c.BindJSON(&student)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+
+	if success := BindJSON(c, &student); !success {
 		return
 	}
 
@@ -88,20 +69,14 @@ func CreateStudent(c *gin.Context) {
 		return
 	}
 
-	err = database.DB.CreateStudent(&student)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal server error creating student: %s", err)
-		return
-	}
+	database.DB.CreateStudent(&student)
 
 	Success(c, http.StatusCreated, student)
 }
 
 func CreateStudents(c *gin.Context) {
 	var students []database.Student
-	err := c.BindJSON(&students)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &students); !success {
 		return
 	}
 
@@ -111,11 +86,7 @@ func CreateStudents(c *gin.Context) {
 			return
 		}
 
-		err = database.DB.CreateStudent(&students[i])
-		if err != nil {
-			Errorf(c, http.StatusInternalServerError, "internal server error creating student: %s", err)
-			return
-		}
+		database.DB.CreateStudent(&students[i])
 
 	}
 
@@ -123,16 +94,12 @@ func CreateStudents(c *gin.Context) {
 }
 
 func GetStudentByID(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
-	student, found, err := database.DB.GetStudentByID(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+
+	student, found := database.DB.GetStudentByID(id)
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
 		return
@@ -142,17 +109,12 @@ func GetStudentByID(c *gin.Context) {
 }
 
 func DeleteStudent(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
 
-	success, err := database.DB.DeleteStudent(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error deleting student: %s", err)
-		return
-	}
+	success = database.DB.DeleteStudent(id)
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
 		return
@@ -162,24 +124,17 @@ func DeleteStudent(c *gin.Context) {
 }
 
 func UpdateStudent(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
 
 	var student database.Student
-	err = c.BindJSON(&student)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "failed to parse request body: %s", err)
+	if success := BindJSON(c, &student); !success {
 		return
 	}
 
-	success, err := database.DB.UpdateStudent(id, &student)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error updating student: %s", err)
-		return
-	}
+	success = database.DB.UpdateStudent(id, &student)
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
 		return
@@ -189,16 +144,13 @@ func UpdateStudent(c *gin.Context) {
 }
 
 func GetStudentLocation(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
+	id, success := GetIDParam(c)
+	if !success {
 		return
 	}
-	student, found, err := database.DB.GetStudentByID(id)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error querying database: %s", err)
-		return
-	}
+
+	student, found := database.DB.GetStudentByID(id)
+
 	if !found {
 		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
 		return

@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,45 +39,43 @@ type Event struct {
 
 // CreateEvent creates an event and adds it to the database. The
 // ID element of the Event will be set if it is successful
-func (db *Database) CreateEvent(event *Event) error {
+func (db *Database) CreateEvent(event *Event) {
 	result, err := db.Collections.Events.InsertOne(context.TODO(), event)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	event.ID = result.InsertedID.(primitive.ObjectID)
-
-	return nil
 }
 
 // GetEvents returns a list of all events stored in the database.
 // It will return an ordered list with the most recent first.
-func (db *Database) GetEvents() ([]Event, error) {
+func (db *Database) GetEvents() []Event {
 	cur, err := db.Collections.Events.Find(context.TODO(), bson.D{}, &options.FindOptions{
 		// Sort by date
 		Sort: bson.D{{"time", -1}},
 	})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	events := make([]Event, 0)
 	if err := cur.All(context.TODO(), &events); err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return events, nil
+	return events
 }
 
 // GetMostRecentEvent gets the most recent event created by the specified studentID
 // If the event is found, it will be returned, otherwise, found will be false.
 // If there is an error getting the most recent event, it will be returned
-func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Event, found bool, err error) {
+func (db *Database) GetMostRecentEvent(studentID primitive.ObjectID) (event Event, found bool) {
 	return db.GetMostRecentEventBetween(studentID, time.Unix(0, 0), time.Now())
 }
 
 // GetMostRecentEventBetween gets the most recent event between two time intervals
-func (db *Database) GetMostRecentEventBetween(studentID primitive.ObjectID, minTime time.Time, maxTime time.Time) (event Event, found bool, err error) {
+func (db *Database) GetMostRecentEventBetween(studentID primitive.ObjectID, minTime time.Time, maxTime time.Time) (event Event, found bool) {
 	result := db.Collections.Events.FindOne(context.TODO(), bson.D{
 		{"studentid", studentID},
 		{"time", bson.M{"$lt": maxTime}},
@@ -87,24 +84,24 @@ func (db *Database) GetMostRecentEventBetween(studentID primitive.ObjectID, minT
 		Sort: bson.D{{"time", -1}},
 	})
 
-	err = result.Err()
+	err := result.Err()
 	// If the event was not found
 	if err == mongo.ErrNoDocuments {
-		return Event{}, false, nil
+		return Event{}, false
 	} else if err != nil { // If there was another error
-		return Event{}, false, fmt.Errorf("could not get most recent event: %s", err)
+		panic(err)
 	}
 
 	if err := result.Decode(&event); err != nil {
-		return Event{}, true, fmt.Errorf("error decoding event: %s", err)
+		panic(err)
 	}
 
-	return event, true, nil
+	return event, true
 }
 
 // GetAllEventsBetween gets all of the events between minTime and maxTime.
 // The events will be sorted by earliest to latest.
-func (db *Database) GetAllEventsBetween(minTime time.Time, maxTime time.Time) (events []Event, err error) {
+func (db *Database) GetAllEventsBetween(minTime time.Time, maxTime time.Time) []Event {
 	cursor, err := db.Collections.Events.Find(context.TODO(), bson.D{
 		{"time", bson.M{"$lt": maxTime}},
 		{"time", bson.M{"$gt": minTime}},
@@ -112,11 +109,13 @@ func (db *Database) GetAllEventsBetween(minTime time.Time, maxTime time.Time) (e
 		Sort: bson.D{{"time", 1}},
 	})
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	events = make([]Event, 0)
-	err = cursor.All(nil, &events)
+	events := make([]Event, 0)
+	if err := cursor.All(nil, &events); err != nil {
+		panic(err)
+	}
 
-	return
+	return events
 }
