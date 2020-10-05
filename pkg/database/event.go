@@ -48,7 +48,7 @@ func (db *Database) GetMostRecentEvent(studentRef StudentRef) (event Event, foun
 // GetMostRecentEventBetween gets the most recent event between two time intervals
 func (db *Database) GetMostRecentEventBetween(studentRef StudentRef, minTime time.Time, maxTime time.Time) (event Event, found bool) {
 	result := db.Collections.Events.FindOne(context.TODO(), bson.D{
-		{"studentid", studentRef},
+		{"student", studentRef},
 		{"time", bson.M{"$lt": maxTime}},
 		{"time", bson.M{"$gt": minTime}},
 	}, &options.FindOneOptions{

@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {getStudentsAtLocation, logoutAll, logoutStudent, Student, TraceEvent, TraceLocation} from "../api";
+import {getStudentsAtLocation, logoutAll, logoutStudent, TraceStudent, TraceEvent, TraceLocation} from "../api";
 import {formatAMPM, onCatch, onCatchPrefix} from "./util";
 import {Button, Card, HTMLTable, ICardProps, Spinner} from "@blueprintjs/core";
 import moment from "moment";
 
 export default function CurrentlyInLocation({location, ...props}: { location: TraceLocation } & ICardProps) {
     let [loading, setLoading] = useState(true);
-    let [students, setStudents] = useState<{ student: Student, time: Date }[]>([]);
+    let [students, setStudents] = useState<{ student: TraceStudent, time: Date }[]>([]);
 
     const updateStudents = useCallback(() => {
         getStudentsAtLocation(location.id)
@@ -76,7 +76,7 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
 
 interface StudentRowProps {
     location: TraceLocation,
-    student: { time: Date, student: Student },
+    student: { time: Date, student: TraceStudent },
     onDeleteStudent: () => void
 }
 

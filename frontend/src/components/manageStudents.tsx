@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Card, FileInput, HTMLTable, ICardProps, Icon, IHTMLTableProps, Spinner, Tooltip} from "@blueprintjs/core";
-import {createStudents, getStudents, Student} from "../api";
+import {createStudents, getStudents, TraceStudent} from "../api";
 import {onCatch} from "./util";
 import Papa from "papaparse";
 
 export default function ManageStudents({...props}: ICardProps) {
-    const [students, setStudents] = useState<Student[]>([]);
+    const [students, setStudents] = useState<TraceStudent[]>([]);
     const [loading, setLoading] = useState(true);
 
     const updateStudents = () => {
@@ -21,7 +21,7 @@ export default function ManageStudents({...props}: ICardProps) {
         updateStudents();
     }, []);
 
-    const onStudentUpload = (students: Student[]) => {
+    const onStudentUpload = (students: TraceStudent[]) => {
         createStudents(students)
             .then(() => {
                 updateStudents();
@@ -43,7 +43,7 @@ export default function ManageStudents({...props}: ICardProps) {
     </Card>
 }
 
-function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void}) {
+function StudentCSVUpload({onUpload}: {onUpload: (students: TraceStudent[]) => void}) {
     const handleError = onCatch
 
     const handleStudentUploadChange: React.FormEventHandler<HTMLInputElement> = event => {
@@ -73,7 +73,7 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void})
             }
 
             // We can't pass arrays as CSV so we will have to use a single handle
-            interface CSVStudent extends Student {
+            interface CSVStudent extends TraceStudent {
                 handle: string
             }
 
@@ -95,9 +95,9 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void})
                 return
             }
 
-            const students: Student[] = csvStudents.map(st => {
+            const students: TraceStudent[] = csvStudents.map(st => {
                 st.student_handles = [st.handle];
-                return st as Student;
+                return st as TraceStudent;
             })
 
             onUpload(students);
@@ -112,7 +112,7 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: Student[]) => void})
     />
 }
 
-export function StudentTable({students, loading, ...props}: { students: Student[], loading?: boolean } & IHTMLTableProps) {
+export function StudentTable({students, loading, ...props}: { students: TraceStudent[], loading?: boolean } & IHTMLTableProps) {
     if (loading) {
         return <Spinner className="m-8"/>
     }
@@ -135,7 +135,7 @@ export function StudentTable({students, loading, ...props}: { students: Student[
     </HTMLTable>
 }
 
-function StudentRow({student}: { student: Student }) {
+function StudentRow({student}: { student: TraceStudent }) {
     return <tr>
         <td>{student.name || "-"}</td>
         <td>{student.email || "-"}</td>
