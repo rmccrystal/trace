@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -79,8 +80,9 @@ func UpdateLocation(c *gin.Context) {
 }
 
 func GetStudentsAtLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -90,7 +92,7 @@ func GetStudentsAtLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.ShouldBindJSON(&json)
 
-	students, events, err := trace.GetStudentsAtLocation(id, json.Time)
+	students, events, err := trace.GetStudentsAtLocation(location.Ref(), json.Time)
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
 		return
@@ -114,18 +116,13 @@ func GetStudentsAtLocation(c *gin.Context) {
 }
 
 func LogoutAllStudentsAtLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	location, found := database.DB.GetLocationByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
-		return
-	}
-
-	students, _, err := trace.GetStudentsAtLocation(location.ID, time.Now())
+	students, _, err := trace.GetStudentsAtLocation(location.Ref(), time.Now())
 	if err != nil {
 		Errorf(c, http.StatusInternalServerError, "error getting students at location: %s", err)
 		return
