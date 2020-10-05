@@ -29,14 +29,9 @@ func CreateLocation(c *gin.Context) {
 }
 
 func GetLocationByID(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	location, found := database.DB.GetLocationByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -44,44 +39,38 @@ func GetLocationByID(c *gin.Context) {
 }
 
 func DeleteLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	success = database.DB.DeleteLocation(id)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.DeleteLocation(location.ID)
 
 	Success(c, http.StatusOK, nil)
 }
 
 func UpdateLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	var location database.Location
+	var newLocation database.Location
 	if success := BindJSON(c, &location); !success {
 		return
 	}
 
+	_ = database.DB.UpdateLocation(location.ID, &newLocation)
 
-	success = database.DB.UpdateLocation(id, &location)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
-		return
-	}
-
-	Success(c, http.StatusOK, location)
+	Success(c, http.StatusOK, newLocation)
 }
 
 func GetStudentsAtLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -91,7 +80,7 @@ func GetStudentsAtLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.ShouldBindJSON(&json)
 
-	students, events, err := trace.GetStudentsAtLocation(id, json.Time)
+	students, events, err := trace.GetStudentsAtLocation(location.Ref(), json.Time)
 	if err != nil {
 		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
 		return
@@ -100,14 +89,14 @@ func GetStudentsAtLocation(c *gin.Context) {
 	/* Create a json response formatted as:
 	[{
 		"student": (student),
-		"event": (event)
+		"time": (time)
 	}]
-	 */
+	*/
 	var resp = make([]map[string]interface{}, 0)
 	for i := range students {
 		resp = append(resp, map[string]interface{}{
 			"student": students[i],
-			"event": events[i],
+			"time":    events[i].Time,
 		})
 	}
 
@@ -115,18 +104,13 @@ func GetStudentsAtLocation(c *gin.Context) {
 }
 
 func LogoutAllStudentsAtLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	location, found := database.DB.GetLocationByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
-		return
-	}
-
-	students, _, err := trace.GetStudentsAtLocation(location.ID, time.Now())
+	students, _, err := trace.GetStudentsAtLocation(location.Ref(), time.Now())
 	if err != nil {
 		Errorf(c, http.StatusInternalServerError, "error getting students at location: %s", err)
 		return
@@ -134,11 +118,11 @@ func LogoutAllStudentsAtLocation(c *gin.Context) {
 
 	for _, student := range students {
 		newEvent := database.Event{
-			LocationID: location.ID,
-			StudentID:  student.ID,
-			Time:       time.Now(),
-			EventType:  database.EventLeave,
-			Source:     database.EventSourceLoggedOutAll,
+			Location:  database.LocationRef(location.ID),
+			Student:   database.StudentRef(student.ID),
+			Time:      time.Now(),
+			EventType: database.EventLeave,
+			Source:    database.EventSourceLoggedOutAll,
 		}
 		database.DB.CreateEvent(&newEvent)
 	}

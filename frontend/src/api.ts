@@ -27,10 +27,8 @@ export enum EventType {
 
 export interface TraceEvent {
     id: string,
-    location_id: string,
-    location_name: string,
-    student_id: string,
-    student_name: string,
+    location: TraceLocation,
+    student: TraceStudent,
     time: Date,
     event_type: EventType
 }
@@ -49,17 +47,17 @@ export async function getLocations(): Promise<TraceLocation[]> {
     return await sendApiRequest<TraceLocation[]>("GET", "location");
 }
 
-export interface Student {
+export interface TraceStudent {
     id: string,
     name: string,
     email: string,
     student_handles: string[]
 }
 
-export async function getStudentsAtLocation(location_id: string): Promise<{student: Student, event: TraceEvent}[]> {
-    let data = await sendApiRequest<{student: Student, event: TraceEvent}[]>("GET", `location/${location_id}/students`);
+export async function getStudentsAtLocation(location_id: string): Promise<{student: TraceStudent, time: Date}[]> {
+    let data = await sendApiRequest<{student: TraceStudent, time: Date}[]>("GET", `location/${location_id}/students`);
     data.map((st) => {
-        st.event.time = new Date(st.event.time);
+        st.time = new Date(st.time);
     });
     return data;
 }
@@ -68,7 +66,7 @@ export async function logoutStudent(student_id: string, location_id: string): Pr
     return await sendApiRequest("POST", `student/${student_id}/logout`, {location_id: location_id});
 }
 
-export async function getStudents(): Promise<Student[]> {
+export async function getStudents(): Promise<TraceStudent[]> {
     return await sendApiRequest("GET", `student`);
 }
 
@@ -80,6 +78,6 @@ export async function createNewLocation(location: Partial<TraceLocation>): Promi
     return await sendApiRequest("POST", `location`, location);
 }
 
-export async function createStudents(students: Student[]): Promise<Student[]> {
+export async function createStudents(students: TraceStudent[]): Promise<TraceStudent[]> {
     return await sendApiRequest("POST", "students", students);
 }

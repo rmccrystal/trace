@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"unicode"
 )
@@ -60,19 +59,6 @@ func Error(c *gin.Context, code int, error error) {
 // Errorf return the same thing as Error except it formats the arguments
 func Errorf(c *gin.Context, code int, format string, args ...interface{}) {
 	Error(c, code, fmt.Errorf(format, args...))
-}
-
-// GetIDParam gets the :id parameter from a request and converts it into an object ID.
-// If there is an error parsing the object ID, it will send an error response and the bool will be false.
-// If the success bool is false, the caller should return from the request
-func GetIDParam(c *gin.Context) (id primitive.ObjectID, success bool) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
-		return primitive.ObjectID{}, false
-	}
-
-	return id, true
 }
 
 // BindJSON calls gin.Context.BindJSON and responds with an error if it is unsuccessful.

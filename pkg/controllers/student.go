@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 	"trace/pkg/database"
@@ -15,42 +14,25 @@ func GetStudents(c *gin.Context) {
 }
 
 func LogoutStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	student, found := database.DB.GetStudentByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
-		return
-	}
-
-	body := struct{
-		LocationID string `json:"location_id"`
+	body := struct {
+		LocationID database.LocationRef `json:"location_id"`
 	}{}
 	if success := BindJSON(c, &body); !success {
 		return
 	}
 
-	// TODO: use GetIDParam or modify the func?
-	locationID, err := primitive.ObjectIDFromHex(body.LocationID)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
-		return
-	}
-	location, found := database.DB.GetLocationByID(locationID)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
-		return
-	}
-
 	newEvent := database.Event{
-		LocationID: location.ID,
-		StudentID:  student.ID,
-		Time:       time.Now(),
-		EventType:  database.EventLeave,
-		Source:     database.EventSourceLoggedOut,
+		Location:  body.LocationID,
+		Student:   student.Ref(),
+		Time:      time.Now(),
+		EventType: database.EventLeave,
+		Source:    database.EventSourceLoggedOut,
 	}
 	database.DB.CreateEvent(&newEvent)
 
@@ -94,14 +76,9 @@ func CreateStudents(c *gin.Context) {
 }
 
 func GetStudentByID(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	student, found := database.DB.GetStudentByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -109,50 +86,38 @@ func GetStudentByID(c *gin.Context) {
 }
 
 func DeleteStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	success = database.DB.DeleteStudent(id)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.DeleteStudent(student.ID)
 
 	Success(c, http.StatusOK, nil)
 }
 
 func UpdateStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	var student database.Student
-	if success := BindJSON(c, &student); !success {
+	var newStudent database.Student
+	if success := BindJSON(c, &newStudent); !success {
 		return
 	}
 
-	success = database.DB.UpdateStudent(id, &student)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.UpdateStudent(student.ID, &newStudent)
 
 	Success(c, http.StatusOK, student)
 }
 
 func GetStudentLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	student, found := database.DB.GetStudentByID(id)
-
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -162,11 +127,7 @@ func GetStudentLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.BindJSON(&json)
 
-	location, found, err := trace.GetStudentLocation(student.ID, json.Time)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error getting student location: %s", err)
-		return
-	}
+	location, found := trace.GetStudentLocation(database.StudentRef(student.ID), json.Time)
 	if !found {
 		Success(c, http.StatusOK, nil)
 		return
