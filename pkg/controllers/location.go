@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/aws/aws-sdk-go/service/databasemigrationservice"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -30,14 +29,9 @@ func CreateLocation(c *gin.Context) {
 }
 
 func GetLocationByID(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	location, found := database.DB.GetLocationByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -45,38 +39,32 @@ func GetLocationByID(c *gin.Context) {
 }
 
 func DeleteLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	success = database.DB.DeleteLocation(id)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.DeleteLocation(location.ID)
 
 	Success(c, http.StatusOK, nil)
 }
 
 func UpdateLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	var location database.Location
+	var newLocation database.Location
 	if success := BindJSON(c, &location); !success {
 		return
 	}
 
-	success = database.DB.UpdateLocation(id, &location)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.UpdateLocation(location.ID, &newLocation)
 
-	Success(c, http.StatusOK, location)
+	Success(c, http.StatusOK, newLocation)
 }
 
 func GetStudentsAtLocation(c *gin.Context) {

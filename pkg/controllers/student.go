@@ -14,14 +14,9 @@ func GetStudents(c *gin.Context) {
 }
 
 func LogoutStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	student, found := database.DB.GetStudentByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -34,7 +29,7 @@ func LogoutStudent(c *gin.Context) {
 
 	newEvent := database.Event{
 		Location:  body.LocationID,
-		Student:   database.StudentRef(student.ID),
+		Student:   student.Ref(),
 		Time:      time.Now(),
 		EventType: database.EventLeave,
 		Source:    database.EventSourceLoggedOut,
@@ -81,14 +76,9 @@ func CreateStudents(c *gin.Context) {
 }
 
 func GetStudentByID(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	student, found := database.DB.GetStudentByID(id)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -96,50 +86,38 @@ func GetStudentByID(c *gin.Context) {
 }
 
 func DeleteStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	success = database.DB.DeleteStudent(id)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.DeleteStudent(student.ID)
 
 	Success(c, http.StatusOK, nil)
 }
 
 func UpdateStudent(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	var student database.Student
-	if success := BindJSON(c, &student); !success {
+	var newStudent database.Student
+	if success := BindJSON(c, &newStudent); !success {
 		return
 	}
 
-	success = database.DB.UpdateStudent(id, &student)
-	if !success {
-		Errorf(c, http.StatusUnprocessableEntity, "could not find student with ID %s", id.Hex())
-		return
-	}
+	_ = database.DB.UpdateStudent(student.ID, &newStudent)
 
 	Success(c, http.StatusOK, student)
 }
 
 func GetStudentLocation(c *gin.Context) {
-	id, success := GetIDParam(c)
-	if !success {
-		return
-	}
-
-	student, found := database.DB.GetStudentByID(id)
-
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "student with id %s not found", id.Hex())
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
