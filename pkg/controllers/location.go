@@ -80,11 +80,7 @@ func GetStudentsAtLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.ShouldBindJSON(&json)
 
-	students, events, err := trace.GetStudentsAtLocation(location.Ref(), json.Time)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not get students at location: %s", err)
-		return
-	}
+	students, events := trace.GetStudentsAtLocation(location.Ref(), json.Time)
 
 	/* Create a json response formatted as:
 	[{
@@ -110,11 +106,7 @@ func LogoutAllStudentsAtLocation(c *gin.Context) {
 		return
 	}
 
-	students, _, err := trace.GetStudentsAtLocation(location.Ref(), time.Now())
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "error getting students at location: %s", err)
-		return
-	}
+	students, _ := trace.GetStudentsAtLocation(location.Ref(), time.Now())
 
 	for _, student := range students {
 		newEvent := database.Event{
@@ -128,4 +120,16 @@ func LogoutAllStudentsAtLocation(c *gin.Context) {
 	}
 
 	Success(c, http.StatusCreated, nil)
+}
+
+func VisitedLocationToday(c *gin.Context) {
+	location, err := database.DB.GetLocationByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	visitReport := trace.GetLocationVisitors(location.Ref(), time.Now().Add(-24 * time.Hour), time.Now())
+
+	Success(c, http.StatusOK, visitReport)
 }

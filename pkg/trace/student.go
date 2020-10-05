@@ -30,7 +30,7 @@ func IsStudentAtLocation(studentRef database.StudentRef, locationRef database.Lo
 
 // GetStudentsAtLocation returns a list of all students at a location at a specific time and the corresponding events.
 // For most cases, the time should just be time.Now()
-func GetStudentsAtLocation(locationRef database.LocationRef, time time.Time) ([]database.Student, []database.Event, error) {
+func GetStudentsAtLocation(locationRef database.LocationRef, time time.Time) ([]database.Student, []database.Event) {
 	// iterate through all students and check if each one is at the location
 
 	studentsAtLocation := make([]database.Student, 0)
@@ -46,7 +46,7 @@ func GetStudentsAtLocation(locationRef database.LocationRef, time time.Time) ([]
 		}
 	}
 
-	return studentsAtLocation, events, nil
+	return studentsAtLocation, events
 }
 
 // GetStudentLocation returns the location a student is at. If the student is not at any location,
