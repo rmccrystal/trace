@@ -2,57 +2,44 @@ package trace
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 	"trace/pkg/database"
 )
 
 // IsStudentAtLocation returns true and the corresponding event if a student is at a location at a specific time
-func IsStudentAtLocation(studentID primitive.ObjectID, locationID primitive.ObjectID, time time.Time) (bool, database.Event, error) {
-	location, found := database.DB.GetLocationByID(locationID)
-	if !found {
-		return false, database.Event{}, fmt.Errorf("could not find location")
-	}
+func IsStudentAtLocation(studentRef database.StudentRef, locationRef database.LocationRef, time time.Time) (bool, database.Event) {
+	location := locationRef.Get()
 
 	// Get the event between the time and time - the location timeout
-	lastEvent, found := database.DB.GetMostRecentEventBetween(studentID, time.Add(location.Timeout * -1), time)
+	lastEvent, found := database.DB.GetMostRecentEventBetween(studentRef, time.Add(location.Timeout * -1), time)
 
-	if found && lastEvent.LocationID == locationID {
+	if found && lastEvent.Location == locationRef {
 		switch lastEvent.EventType {
 		case database.EventLeave:
-			return false, database.Event{}, nil
+			return false, database.Event{}
 		case database.EventEnter:
-			return true, lastEvent, nil
+			return true, lastEvent
 		default:
-			return false, lastEvent, fmt.Errorf("invalid event type %d", lastEvent.EventType)
+			panic(fmt.Sprintf("invalid event type %d", lastEvent.EventType))
 		}
 	}
 
 	// If there are no past events, assume the student is not at the location
-	return false, database.Event{}, nil
+	return false, database.Event{}
 }
 
 // GetStudentsAtLocation returns a list of all students at a location at a specific time and the corresponding events.
 // For most cases, the time should just be time.Now()
-func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]database.Student, []database.Event, error) {
+func GetStudentsAtLocation(locationRef database.LocationRef, time time.Time) ([]database.Student, []database.Event, error) {
 	// iterate through all students and check if each one is at the location
 
 	studentsAtLocation := make([]database.Student, 0)
 	events := make([]database.Event, 0)
 
-	location, found := database.DB.GetLocationByID(locationID)
-	if !found {
-		return nil, nil, fmt.Errorf("could not find location with id %s", locationID)
-	}
-
 	students := database.DB.GetStudents()
 
 	for _, student := range students {
-		atLocation, event, err := IsStudentAtLocation(student.ID, locationID, time)
-		if err != nil {
-			logrus.Errorf("Error checking if student %s is at location %s: %s", student.Name, location.Name, err)
-		}
+		atLocation, event := IsStudentAtLocation(database.StudentRef(student.ID), locationRef, time)
 		if atLocation {
 			studentsAtLocation = append(studentsAtLocation, student)
 			events = append(events, event)
@@ -64,26 +51,18 @@ func GetStudentsAtLocation(locationID primitive.ObjectID, time time.Time) ([]dat
 
 // GetStudentLocation returns the location a student is at. If the student is not at any location,
 // found will be false.
-func GetStudentLocation(studentID primitive.ObjectID, time time.Time) (location database.Location, found bool, err error) {
-	student, found := database.DB.GetStudentByID(studentID)
-	if !found {
-		return database.Location{}, false, fmt.Errorf("could not find student with id %s", studentID.Hex())
-	}
-
-	lastEvent, found := database.DB.GetMostRecentEvent(studentID)
+func GetStudentLocation(studentRef database.StudentRef, time time.Time) (location database.Location, found bool) {
+	lastEvent, found := database.DB.GetMostRecentEvent(studentRef)
 	if !found {
 		// If there is no most recent event for this student, we can assume they are not at a location
-		return database.Location{}, false, nil
+		return database.Location{}, false
 	}
 
-	location, found = database.DB.GetLocationByID(lastEvent.ID)
-	if !found {
-		return database.Location{}, false, fmt.Errorf("could not find location refrenced in student id %s", student.ID)
-	}
+	location = lastEvent.Location.Get()
 
 	// check lastEvent time
 	if lastEvent.Time.Add(location.Timeout).Before(time) {
-		return database.Location{}, false, nil
+		return database.Location{}, false
 	}
 
 	found = true

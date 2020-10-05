@@ -3,7 +3,6 @@ package trace
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 	"trace/pkg/database"
 )
@@ -14,22 +13,15 @@ import (
 // If there is an error with the input (locationID or studentHandle is invalid), the
 // error will be returned as a userError. If there is an error accessing the database
 // or any other unexpected error, it will be returned in err
-func HandleScan(locationID string, studentHandle string) (ev database.Event, userError error, err error) {
-	locationObjectID, _ := primitive.ObjectIDFromHex(locationID)
-	location, found := database.DB.GetLocationByID(locationObjectID)
-	if !found {
-		return database.Event{}, fmt.Errorf("location with ID %s was not found", locationID), nil
-	}
+func HandleScan(locationRef database.LocationRef, studentHandle string) (ev database.Event, userError error, err error) {
+	location := locationRef.Get()
 
 	student, found := database.DB.GetStudentByHandle(studentHandle)
 	if !found {
 		return database.Event{}, fmt.Errorf("student with handle %s was not found", studentHandle), nil
 	}
 
-	studentAtLocation, _, err := IsStudentAtLocation(student.ID, location.ID, time.Now())
-	if err != nil {
-		return database.Event{}, nil, fmt.Errorf("encountered error checking if student %s is at location %s: %s", student.Name, location.Name, err)
-	}
+	studentAtLocation, _ := IsStudentAtLocation(student.Ref(), location.Ref(), time.Now())
 
 	// TODO: Create an implicit logout event when someone logs in again to a new location
 
@@ -42,8 +34,8 @@ func HandleScan(locationID string, studentHandle string) (ev database.Event, use
 	}
 
 	event := database.Event{
-		LocationID: location.ID,
-		StudentID:  student.ID,
+		Location: database.LocationRef(location.ID),
+		Student:  database.StudentRef(student.ID),
 		Time:       time.Now(),
 		EventType:  eventType,
 		Source:     database.EventSourceScan,

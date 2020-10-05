@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,6 +17,54 @@ type Location struct {
 	Name    string             `json:"name"`
 	// The time it takes for a student to automatically time out
 	Timeout time.Duration      `json:"timeout"`
+}
+
+// LocationRef is a reference to a location which, when serialized, will return
+// the json of the referenced location.
+//
+// Be careful for circular references.
+type LocationRef primitive.ObjectID
+
+func (ref LocationRef) GetBSON() (interface{}, error){
+	return primitive.ObjectID(ref), nil
+}
+
+func (ref LocationRef) MarshalJSON() ([]byte, error) {
+	obj, found := DB.GetLocationByID(primitive.ObjectID(ref))
+	if !found {
+		return nil, fmt.Errorf("could not find location with id %s", ref)
+	}
+
+	return json.Marshal(obj)
+}
+
+// Same functionality is ObjectID.UnmarshalJSON except it returns an error if the referenced object doesn't exist
+func (ref *LocationRef) UnmarshalJSON(b []byte) error {
+	id := primitive.ObjectID(*ref)
+	if err := id.UnmarshalJSON(b); err != nil {
+		return err
+	}
+	_, found := DB.GetEventByID(id)
+	if !found {
+		return fmt.Errorf("object not found")
+	}
+
+	*ref = LocationRef(id)
+	return nil
+}
+
+// Gets the referenced object and panics if it doesn't exist
+func (ref LocationRef) Get() Location {
+	obj, found := DB.GetLocationByID(primitive.ObjectID(ref))
+	if !found {
+		panic("could not find object")
+	}
+	return obj
+}
+
+// Ref creates a reference to the object
+func (obj Location) Ref() LocationRef {
+	return LocationRef(obj.ID)
 }
 
 // CreateLocation creates a location and adds it to the database. The

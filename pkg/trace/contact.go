@@ -3,7 +3,6 @@ package trace
 import (
 	"errors"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 	"trace/pkg/database"
 )
@@ -14,7 +13,7 @@ type ContactReport struct {
 	// as the target student. Each element of this array represents the number of students in between that contact.
 	// For example, the 1st element of this array would be the people who have been directly in contact with
 	// TargetStudent, the 2nd element of this array would be the time spent with the first contact students, and so on
-	Contacts []map[primitive.ObjectID]time.Duration
+	Contacts []map[database.StudentRef]time.Duration
 }
 
 // GenerateContactReport generates a contact report for the targetStudent between startTime and endTime
@@ -31,10 +30,10 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 	}
 
 	// Create the contact list
-	report.Contacts = make([]map[primitive.ObjectID]time.Duration, maxDepth)
+	report.Contacts = make([]map[database.StudentRef]time.Duration, maxDepth)
 	// Make each map
 	for n := range report.Contacts {
-		report.Contacts[n] = make(map[primitive.ObjectID]time.Duration)
+		report.Contacts[n] = make(map[database.StudentRef]time.Duration)
 	}
 
 	// Get all the students in direct contact
@@ -43,8 +42,8 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 			continue
 		}
 
-		timeWithTarget := getContactTimeWith(events, targetStudent.ID, student.ID)
-		report.Contacts[0][student.ID] = timeWithTarget
+		timeWithTarget := getContactTimeWith(events, targetStudent.Ref(), student.Ref())
+		report.Contacts[0][student.Ref()] = timeWithTarget
 	}
 
 	// Calculate time spent for each depth.
@@ -52,7 +51,7 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 	// O(n^4)
 	for depth := 1; depth < maxDepth; depth++ {
 		// We're now getting contact time between multiple target students who have are in [depth-1]
-		var targetStudents []primitive.ObjectID
+		var targetStudents []database.StudentRef
 		for student := range report.Contacts[depth-1] {
 			targetStudents = append(targetStudents, student)
 		}
@@ -65,12 +64,12 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 		// For all students who have been in contact with target with the targetStudent [depth-1] away
 		for _, depthTargetStudent := range targetStudents {
 			for _, student := range students {
-				if student.ID == depthTargetStudent {
+				if student.Ref() == depthTargetStudent {
 					continue
 				}
 
-				timeWithTarget := getContactTimeWith(events, depthTargetStudent, student.ID)
-				report.Contacts[depth][student.ID] = timeWithTarget
+				timeWithTarget := getContactTimeWith(events, depthTargetStudent, student.Ref())
+				report.Contacts[depth][student.Ref()] = timeWithTarget
 			}
 		}
 	}
@@ -80,13 +79,13 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 
 // getContactTimeWith gets the total amount of time that student1 and student2 have been in contact.
 // events must be in order from oldest to newest
-func getContactTimeWith(events []database.Event, student1 primitive.ObjectID, student2 primitive.ObjectID) time.Duration {
+func getContactTimeWith(events []database.Event, student1 database.StudentRef, student2 database.StudentRef) time.Duration {
 	// The total time the two students have been in contact
 	var totalTime time.Duration
 
 	// The current location of each student. Nil if they are not in a location
-	var student1Location *primitive.ObjectID
-	var student2Location *primitive.ObjectID
+	var student1Location *database.LocationRef
+	var student2Location *database.LocationRef
 
 	// The time a student has entered their location
 	var student1UpdateTime time.Time
@@ -95,7 +94,7 @@ func getContactTimeWith(events []database.Event, student1 primitive.ObjectID, st
 	// Parse each event
 	for _, event := range events {
 		// Continue if the event isn't with either of the students
-		if event.StudentID != student1 && event.StudentID != student2 {
+		if event.Student != student1 && event.Student != student2 {
 			continue
 		}
 
@@ -104,12 +103,12 @@ func getContactTimeWith(events []database.Event, student1 primitive.ObjectID, st
 
 		// Update the location and updateTime
 		if event.EventType == database.EventEnter {
-			switch event.StudentID {
+			switch event.Student {
 			case student1:
-				student1Location = &event.LocationID
+				student1Location = &event.Location
 				student1UpdateTime = event.Time
 			case student2:
-				student2Location = &event.LocationID
+				student2Location = &event.Location
 				student2UpdateTime = event.Time
 			}
 		} else if event.EventType == database.EventLeave {
@@ -119,7 +118,7 @@ func getContactTimeWith(events []database.Event, student1 primitive.ObjectID, st
 					shouldUpdateTotal = true
 				}
 			}
-			switch event.StudentID {
+			switch event.Student {
 			case student1:
 				student1Location = nil
 				student1UpdateTime = event.Time

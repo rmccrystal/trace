@@ -27,7 +27,7 @@ export enum EventType {
 
 export interface TraceEvent {
     id: string,
-    location_id: string,
+    location: string,
     location_name: string,
     student_id: string,
     student_name: string,
@@ -56,10 +56,10 @@ export interface Student {
     student_handles: string[]
 }
 
-export async function getStudentsAtLocation(location_id: string): Promise<{student: Student, event: TraceEvent}[]> {
-    let data = await sendApiRequest<{student: Student, event: TraceEvent}[]>("GET", `location/${location_id}/students`);
+export async function getStudentsAtLocation(location_id: string): Promise<{student: Student, time: Date}[]> {
+    let data = await sendApiRequest<{student: Student, time: Date}[]>("GET", `location/${location_id}/students`);
     data.map((st) => {
-        st.event.time = new Date(st.event.time);
+        st.time = new Date(st.time);
     });
     return data;
 }

@@ -6,7 +6,7 @@ import moment from "moment";
 
 export default function CurrentlyInLocation({location, ...props}: { location: TraceLocation } & ICardProps) {
     let [loading, setLoading] = useState(true);
-    let [students, setStudents] = useState<{ event: TraceEvent, student: Student }[]>([]);
+    let [students, setStudents] = useState<{ student: Student, time: Date }[]>([]);
 
     const updateStudents = useCallback(() => {
         getStudentsAtLocation(location.id)
@@ -65,7 +65,7 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
                 </tr>
                 </thead>
                 <tbody>
-                {students.sort((a, b) => a.event.time > b.event.time ? 1 : -1)
+                {students.sort((a, b) => a.time > b.time ? 1 : -1)
                     .map(student => <StudentRow key={student.student.id} location={location!} student={student}
                                                 onDeleteStudent={updateStudents}/>)}
                 </tbody>
@@ -76,7 +76,7 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
 
 interface StudentRowProps {
     location: TraceLocation,
-    student: { event: TraceEvent, student: Student },
+    student: { time: Date, student: Student },
     onDeleteStudent: () => void
 }
 
@@ -85,8 +85,8 @@ function StudentRow({location, student, onDeleteStudent}: StudentRowProps) {
 
     return <tr>
         <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
-        <td style={{verticalAlign: "middle"}}>{formatAMPM(student.event.time)}</td>
-        <td style={{verticalAlign: "middle"}}>{moment(student.event.time).fromNow(true)}</td>
+        <td style={{verticalAlign: "middle"}}>{formatAMPM(student.time)}</td>
+        <td style={{verticalAlign: "middle"}}>{moment(student.time).fromNow(true)}</td>
         <td><Button icon="delete" className="float-right" loading={logOutLoading} minimal text={`Log out`}
                     onClick={() => {
                         if (!location) {

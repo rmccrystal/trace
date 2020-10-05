@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,6 +17,54 @@ type Student struct {
 
 	// StudentHandles is the list of IDs that can be used to scan in and out of a location
 	StudentHandles []string `json:"student_handles"`
+}
+
+// StudentRef is a reference to a student which, when serialized, will return
+// the json of the referenced student.
+//
+// Be careful for circular references.
+type StudentRef primitive.ObjectID
+
+func (ref StudentRef) GetBSON() (interface{}, error){
+	return primitive.ObjectID(ref), nil
+}
+
+func (ref StudentRef) MarshalJSON() ([]byte, error) {
+	obj, found := DB.GetStudentByID(primitive.ObjectID(ref))
+	if !found {
+		return nil, fmt.Errorf("could not find student with id %s", ref)
+	}
+
+	return json.Marshal(obj)
+}
+
+// Same functionality is ObjectID.UnmarshalJSON except it returns an error if the referenced object doesn't exist
+func (ref *StudentRef) UnmarshalJSON(b []byte) error {
+	id := primitive.ObjectID(*ref)
+	if err := id.UnmarshalJSON(b); err != nil {
+		return err
+	}
+	_, found := DB.GetEventByID(id)
+	if !found {
+		return fmt.Errorf("object not found")
+	}
+
+	*ref = StudentRef(id)
+	return nil
+}
+
+// Gets the referenced object and panics if it doesn't exist
+func (ref StudentRef) Get() Student {
+	obj, found := DB.GetStudentByID(primitive.ObjectID(ref))
+	if !found {
+		panic("could not find object")
+	}
+	return obj
+}
+
+// Ref creates a reference to the object
+func (obj Student) Ref() StudentRef {
+	return StudentRef(obj.ID)
 }
 
 // CreateStudent creates a student and adds it to the database. The

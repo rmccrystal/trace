@@ -69,7 +69,6 @@ func UpdateLocation(c *gin.Context) {
 		return
 	}
 
-
 	success = database.DB.UpdateLocation(id, &location)
 	if !success {
 		Errorf(c, http.StatusUnprocessableEntity, "could not find location with ID %s", id.Hex())
@@ -100,14 +99,14 @@ func GetStudentsAtLocation(c *gin.Context) {
 	/* Create a json response formatted as:
 	[{
 		"student": (student),
-		"event": (event)
+		"time": (time)
 	}]
-	 */
+	*/
 	var resp = make([]map[string]interface{}, 0)
 	for i := range students {
 		resp = append(resp, map[string]interface{}{
 			"student": students[i],
-			"event": events[i],
+			"time":    events[i].Time,
 		})
 	}
 
@@ -134,11 +133,11 @@ func LogoutAllStudentsAtLocation(c *gin.Context) {
 
 	for _, student := range students {
 		newEvent := database.Event{
-			LocationID: location.ID,
-			StudentID:  student.ID,
-			Time:       time.Now(),
-			EventType:  database.EventLeave,
-			Source:     database.EventSourceLoggedOutAll,
+			Location:  database.LocationRef(location.ID),
+			Student:   database.StudentRef(student.ID),
+			Time:      time.Now(),
+			EventType: database.EventLeave,
+			Source:    database.EventSourceLoggedOutAll,
 		}
 		database.DB.CreateEvent(&newEvent)
 	}

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 	"trace/pkg/database"
@@ -26,31 +25,19 @@ func LogoutStudent(c *gin.Context) {
 		return
 	}
 
-	body := struct{
-		LocationID string `json:"location_id"`
+	body := struct {
+		LocationID database.LocationRef `json:"location_id"`
 	}{}
 	if success := BindJSON(c, &body); !success {
 		return
 	}
 
-	// TODO: use GetIDParam or modify the func?
-	locationID, err := primitive.ObjectIDFromHex(body.LocationID)
-	if err != nil {
-		Errorf(c, http.StatusUnprocessableEntity, "could not parse object id: %s", err)
-		return
-	}
-	location, found := database.DB.GetLocationByID(locationID)
-	if !found {
-		Errorf(c, http.StatusUnprocessableEntity, "location with id %s not found", id.Hex())
-		return
-	}
-
 	newEvent := database.Event{
-		LocationID: location.ID,
-		StudentID:  student.ID,
-		Time:       time.Now(),
-		EventType:  database.EventLeave,
-		Source:     database.EventSourceLoggedOut,
+		Location:  body.LocationID,
+		Student:   database.StudentRef(student.ID),
+		Time:      time.Now(),
+		EventType: database.EventLeave,
+		Source:    database.EventSourceLoggedOut,
 	}
 	database.DB.CreateEvent(&newEvent)
 
@@ -162,11 +149,7 @@ func GetStudentLocation(c *gin.Context) {
 	}{time.Now()}
 	_ = c.BindJSON(&json)
 
-	location, found, err := trace.GetStudentLocation(student.ID, json.Time)
-	if err != nil {
-		Errorf(c, http.StatusInternalServerError, "internal error getting student location: %s", err)
-		return
-	}
+	location, found := trace.GetStudentLocation(database.StudentRef(student.ID), json.Time)
 	if !found {
 		Success(c, http.StatusOK, nil)
 		return
