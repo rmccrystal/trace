@@ -9,6 +9,7 @@ import useLocalStorage, {onCatchPrefix} from "./components/util";
 import ManageStudents from "./components/manageStudents";
 import CurrentlyInLocation from "./components/currentlyInLocation";
 import NewLocationPrompt from "./components/newLocationPrompt";
+import VisitedLocationToday from "./components/visitedLocationToday";
 
 function App() {
     useEffect(() => {
@@ -62,8 +63,10 @@ function App() {
         innerElement = <><Nav setLocation={setLocation} location={location} onToggleDark={() => setDark(!dark)}/>
             <Switch>
                 <Route exact path="/scan" component={() => <Scan location={location!} elevation={1}/>}/>
-                <Route path="/dashboard"
-                       component={() => <CurrentlyInLocation location={location!} elevation={1}/>}/>
+                <Route path="/dashboard">
+                    <CurrentlyInLocation location={location!} elevation={1}/>
+                    <VisitedLocationToday location={location!} elevation={1}/>
+                </Route>
                 <Route path="/students" component={() => <ManageStudents elevation={1}/>}/>
                 <Redirect from="*" to="/scan"/>
             </Switch>

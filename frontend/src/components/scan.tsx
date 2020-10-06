@@ -16,6 +16,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
 
     // so we cancel the timeout if something else changes the state
     let [formStateTimeout, setFormStateTimeout] = useState<any | null>(null);
+
     const submit = () => {
         setLoading(true)
         scan(handle, location.id)
