@@ -65,9 +65,9 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
     let contentElem;
     if (state === "form") {
         contentElem = <>
-            <h1 className="bp3-heading">Please scan badge to sign into the {location.name}</h1>
-            <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the proctor
-                on duty.
+            <h1 className="bp3-heading">Please scan badge to sign in to {location.name}</h1>
+            <div className="bp3-text-large bp3-text-muted mb-5">If you do not have a badge, contact the
+                {location.name.toLowerCase().includes("library") ? " librarian" : " proctor on duty"}
             </div>
             <FormGroup
                 label="Badge ID"
