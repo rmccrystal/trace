@@ -11,13 +11,13 @@ and database with `docker-compose`
 
 To run, cd into the repo directory and type in 
 
-```docker-compose up -d```
+```docker-compose up -d --build```
 
-The server should be running on port 80. To enable HTTP authentication, use
+The build flag tells Docker to rebuild the Docker image if it updated. After running this command the server should be running on port 80. To enable HTTP authentication, use
 the `USERNAME` and `PASSWORD` environment variables:
 
 ```bash
-USERNAME=admin PASSWORD=password docker-compose up -d
+USERNAME=admin PASSWORD=password docker-compose up -d --build
 ```
 
 The database data is stored in a [Docker volume](https://docs.docker.com/storage/volumes/).
