@@ -42,10 +42,6 @@ export default function CurrentlyInLocation({location, ...props}: { location: Tr
             .catch(onCatch)
     }
 
-    if (loading) {
-        return <Spinner className="mt-10"/>
-    }
-
     return <Card {...props} className="max-w-3xl w-full m-8 p-8">
         <h1 className="bp3-heading text-center">
             Currently in {location.name} ({students.length})
