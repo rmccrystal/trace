@@ -84,12 +84,14 @@ export async function createStudents(students: TraceStudent[]): Promise<TraceStu
 
 export interface LocationVisit {
     student: TraceStudent,
-    leave_time: Date
+    leave_time: Date,
+    enter_time: Date,
 }
 export async function getLocationVisits(location_id: string): Promise<LocationVisit[]> {
     let data = await sendApiRequest<LocationVisit[]>("GET", `location/${location_id}/visits`)
     data.map(el => {
         el.leave_time = new Date(el.leave_time);
+        el.enter_time = new Date(el.enter_time);
         return el
     })
     return data;

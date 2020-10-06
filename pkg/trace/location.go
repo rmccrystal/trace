@@ -1,6 +1,7 @@
 package trace
 
 import (
+	log "github.com/sirupsen/logrus"
 	"time"
 	"trace/pkg/database"
 )
@@ -8,6 +9,7 @@ import (
 type LocationVisit struct {
 	Student   database.StudentRef `json:"student"`
 	LeaveTime time.Time           `json:"leave_time"`
+	EnterTime time.Time           `json:"enter_time"`
 }
 
 // GetLocationVisitors returns a list of LocationVisit objects representing
@@ -18,19 +20,26 @@ func GetLocationVisitors(locationRef database.LocationRef, minTime time.Time, ma
 	visits := make([]LocationVisit, 0)
 	for _, student := range students {
 		// iterate through every student and check if they left the location
-		event, found := database.DB.GetMostRecentEventBetween(student.Ref(), minTime, maxTime)
+		leaveEvent, found := database.DB.GetMostRecentEventBetween(student.Ref(), minTime, maxTime)
 		if !found {
 			continue
 		}
 
 		// check if they were leaving
-		if event.EventType != database.EventLeave {
+		if leaveEvent.EventType != database.EventLeave {
 			continue
+		}
+
+		enterEvent, found := database.DB.GetMostRecentEventBetweenWithType(student.Ref(), minTime, maxTime, database.EventEnter)
+		if !found {
+			log.WithField("leaveEvent", leaveEvent).Errorf("Found a logout leaveEvent without a corresponding login leaveEvent")
+			enterEvent.Time = leaveEvent.Time
 		}
 
 		visits = append(visits, LocationVisit{
 			Student:   student.Ref(),
-			LeaveTime: event.Time,
+			LeaveTime: leaveEvent.Time,
+			EnterTime: enterEvent.Time,
 		})
 	}
 
