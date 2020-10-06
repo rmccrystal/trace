@@ -70,6 +70,32 @@ func (db *Database) GetMostRecentEventBetween(studentRef StudentRef, minTime tim
 	return event, true
 }
 
+// GetMostRecentEventBetweenWithType gets the most recent event between two time intervals and filters by an event type
+func (db *Database) GetMostRecentEventBetweenWithType(studentRef StudentRef, minTime time.Time, maxTime time.Time, eventType EventType) (event Event, found bool) {
+	result := db.Collections.Events.FindOne(context.TODO(), bson.D{
+		{"student", studentRef},
+		{"eventtype", eventType},
+		{"time", bson.M{"$lt": maxTime}},
+		{"time", bson.M{"$gt": minTime}},
+	}, &options.FindOneOptions{
+		Sort: bson.D{{"time", -1}},
+	})
+
+	err := result.Err()
+	// If the event was not found
+	if err == mongo.ErrNoDocuments {
+		return Event{}, false
+	} else if err != nil { // If there was another error
+		panic(err)
+	}
+
+	if err := result.Decode(&event); err != nil {
+		panic(err)
+	}
+
+	return event, true
+}
+
 // GetAllEventsBetween gets all of the events between minTime and maxTime.
 // The events will be sorted by earliest to latest.
 func (db *Database) GetAllEventsBetween(minTime time.Time, maxTime time.Time) []Event {
