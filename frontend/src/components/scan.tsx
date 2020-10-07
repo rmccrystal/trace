@@ -94,6 +94,6 @@ function Submitted({event}: { event: TraceEvent }) {
         <h1 className="bp3-heading text-5xl">Hello <b>{event.student.name}</b>! You are currently
             checking <b>{event.event_type === EventType.Enter ? "in to " : "out of "}</b>
             the <b>{event.location.name}</b>.</h1> <br/>
-        <p className="bp3-text-large bp3-text-muted text-xl">If this is not you, please see the proctor on duty</p>
+        <p className="bp3-text-large bp3-text-muted text-xl">If this is not you, please see the {event.location.name.toLowerCase().includes("library") ? " librarian" : " proctor on duty"}</p>
     </div>
 }
