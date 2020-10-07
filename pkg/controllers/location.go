@@ -129,7 +129,7 @@ func VisitedLocationToday(c *gin.Context) {
 		return
 	}
 
-	visitReport := trace.GetLocationVisitors(location.Ref(), time.Now().Add(-24 * time.Hour), time.Now())
+	visitReport := trace.GetLocationVisitors(location.Ref(), time.Now().Add(-12 * time.Hour), time.Now())
 
 	Success(c, http.StatusOK, visitReport)
 }
