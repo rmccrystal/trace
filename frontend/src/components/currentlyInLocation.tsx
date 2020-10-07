@@ -84,7 +84,7 @@ function StudentRow({location, student, onDeleteStudent}: StudentRowProps) {
         <td style={{verticalAlign: "middle"}}>{student.student.name}</td>
         <td style={{verticalAlign: "middle"}}>{formatAMPM(student.time)}</td>
         <td style={{verticalAlign: "middle"}}>{moment(student.time).fromNow(true)}</td>
-        <td><Button icon="delete" className="float-right" loading={logOutLoading} minimal text={`Log out`}
+        <td><Button style={{verticalAlign: "middle"}} className="float-right min-h-0 p-1" loading={logOutLoading} minimal text={`Log out`}
                     onClick={() => {
                         if (!location) {
                             return
