@@ -37,7 +37,7 @@ export default function ManageStudents({...props}: ICardProps) {
             loading
                 ? <Spinner className="m-8"/>
                 : <Card className="p-0 w-full" elevation={1}>
-                    <StudentTable students={students} className="w-full" striped bordered/>
+                    <StudentTable students={students} className="w-full" condensed striped bordered/>
                 </Card>
         }
     </Card>
