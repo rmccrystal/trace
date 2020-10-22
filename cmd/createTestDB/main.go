@@ -33,16 +33,12 @@ func main() {
 			Name:           name,
 			StudentHandles: handles,
 		}
-		if err := db.CreateStudent(&newStudent); err != nil {
-			panic(err)
-		}
+		db.CreateStudent(&newStudent)
 	}
 
 	for _, locationName := range locations {
-		if err := db.CreateLocation(&database.Location{
+		db.CreateLocation(&database.Location{
 			Name: locationName,
-		}); err != nil {
-			panic(err)
-		}
+		})
 	}
 }
