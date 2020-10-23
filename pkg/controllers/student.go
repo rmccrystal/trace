@@ -135,3 +135,51 @@ func GetStudentLocation(c *gin.Context) {
 
 	Success(c, http.StatusOK, location)
 }
+
+func GetStudentContacts(c *gin.Context) {
+	student, err := database.DB.GetStudentByIDString(c.Param("id"))
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	body := struct {
+		// how much time we want to go back and look for contacts
+		Duration time.Duration `json:"duration"`
+		MaxDepth int           `json:"max_depth"`
+	}{}
+	if err := c.BindJSON(&body); err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	report, err := trace.GenerateContactReport(&student, time.Now().Add(-1*body.Duration), time.Now(), body.MaxDepth)
+	if err != nil {
+		Error(c, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	// since the result contains a map that we cannot encode as json, we need to create a different struct for the response
+	// doing this now i kind of wish that I used node / ts for the backend instead of this... much better interop with json
+	resp := struct {
+		TargetStudent database.StudentRef `json:"target_student"`
+		Contacts      []struct {
+			Student  database.StudentRef `json:"student"`
+			Duration time.Duration       `json:"duration"`
+			Depth    int                 `json:"depth"`
+		} `json:"contacts"`
+	}{TargetStudent: report.TargetStudent.Ref()}
+
+	// populate the struct... this is really messy and i don't like this but it works
+	for depth, contact := range report.Contacts {
+		for student, duration := range contact {
+			resp.Contacts = append(resp.Contacts, struct {
+				Student  database.StudentRef `json:"student"`
+				Duration time.Duration       `json:"duration"`
+				Depth    int                 `json:"depth"`
+			}{Student: student, Duration: duration, Depth: depth})
+		}
+	}
+
+	Success(c, http.StatusOK, resp)
+}

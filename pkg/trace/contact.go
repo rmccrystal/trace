@@ -8,12 +8,12 @@ import (
 )
 
 type ContactReport struct {
-	TargetStudent *database.Student
+	TargetStudent *database.Student `json:"target_student"`
 	// Contacts is an array of maps of students to the time that they have been in the same location
 	// as the target student. Each element of this array represents the number of students in between that contact.
 	// For example, the 1st element of this array would be the people who have been directly in contact with
 	// TargetStudent, the 2nd element of this array would be the time spent with the first contact students, and so on
-	Contacts []map[database.StudentRef]time.Duration
+	Contacts []map[database.StudentRef]time.Duration `json:"contacts"`
 }
 
 // GenerateContactReport generates a contact report for the targetStudent between startTime and endTime
@@ -43,6 +43,9 @@ func GenerateContactReport(targetStudent *database.Student, startTime time.Time,
 		}
 
 		timeWithTarget := getContactTimeWith(events, targetStudent.Ref(), student.Ref())
+		if timeWithTarget == 0 {
+			continue
+		}
 		report.Contacts[0][student.Ref()] = timeWithTarget
 	}
 

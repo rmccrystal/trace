@@ -15,6 +15,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -72,6 +73,9 @@ func (obj Location) Ref() LocationRef {
 // CreateLocation creates a Location and adds it to the database. The
 // ID element of the newly created Location will be set if it is successful
 func (db *Database) CreateLocation(location *Location) {
+	if location.Timeout == 0 {
+		location.Timeout = 4 * time.Hour
+	}
 	result, err := db.Collections.Locations.InsertOne(context.TODO(), location)
 	if err != nil {
 		panic(err)

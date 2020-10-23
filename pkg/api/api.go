@@ -59,6 +59,7 @@ func Listen(addr string, config *Config) error {
 	api.DELETE("student/:id", controllers.DeleteStudent)
 	api.PATCH("student/:id", controllers.UpdateStudent)
 	api.POST("student/:id/logout", controllers.LogoutStudent)
+	api.GET("student/:id/contacts", controllers.GetStudentContacts)
 
 	// Serve React frontend
 	r.Use(static.Serve("/", static.LocalFile("frontend/build", false)))
