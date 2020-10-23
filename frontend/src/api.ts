@@ -82,6 +82,19 @@ export async function createStudents(students: TraceStudent[]): Promise<TraceStu
     return await sendApiRequest("POST", "students", students);
 }
 
+export interface ContactReport {
+    target_student: TraceStudent,
+    contacts: {
+        student: TraceStudent,
+        duration: number, // duration in ms
+        depth: number
+    }[]
+}
+// duration should be in ms
+export async function getStudentContacts(student_id: string, duration: number, max_depth: number = 1): Promise<ContactReport> {
+    return await sendApiRequest("GET", `student/${student_id}/contacts`, {duration, max_depth});
+}
+
 export interface LocationVisit {
     student: TraceStudent,
     leave_time: Date,

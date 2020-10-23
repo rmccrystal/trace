@@ -152,6 +152,8 @@ func GetStudentContacts(c *gin.Context) {
 		Error(c, http.StatusUnprocessableEntity, err)
 		return
 	}
+	// convert ms to ns
+	body.Duration *= 1e6
 
 	report, err := trace.GenerateContactReport(&student, time.Now().Add(-1*body.Duration), time.Now(), body.MaxDepth)
 	if err != nil {
@@ -177,7 +179,7 @@ func GetStudentContacts(c *gin.Context) {
 				Student  database.StudentRef `json:"student"`
 				Duration time.Duration       `json:"duration"`
 				Depth    int                 `json:"depth"`
-			}{Student: student, Duration: duration, Depth: depth})
+			}{Student: student, Duration: duration / 1e6, Depth: depth}) // (convert duration to ms)
 		}
 	}
 
