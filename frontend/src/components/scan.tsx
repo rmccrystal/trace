@@ -19,7 +19,7 @@ export default function Scan({location, ...props}: { location: TraceLocation } &
 
     const submit = () => {
         setLoading(true)
-        scan(handle, location.id)
+        scan(handle, location.id.trim())
             .then((ev) => {
                 setLoading(false);
                 setEvent(ev);
