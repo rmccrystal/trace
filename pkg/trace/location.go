@@ -16,28 +16,37 @@ type LocationVisit struct {
 // who has entered a location in the time range. This will not return students who
 // are currently in the location
 func GetLocationVisitors(locationRef database.LocationRef, minTime time.Time, maxTime time.Time) []LocationVisit {
-	students := database.DB.GetStudents()
 	visits := make([]LocationVisit, 0)
-	for _, student := range students {
-		// iterate through every student and check if they left the location
-		leaveEvent, found := database.DB.GetMostRecentEventBetween(student.Ref(), minTime, maxTime)
+	events := database.DB.GetAllEventsBetween(minTime, maxTime)
+
+	// create and populate latest leave and enter event
+	latestLeaveEvent := make(map[database.StudentRef]database.Event)
+	latestEnterEvent := make(map[database.StudentRef]database.Event)
+	for _, event := range events {
+		if event.EventType == database.EventLeave {
+			latestLeaveEvent[event.Student] = event
+		} else if event.EventType == database.EventEnter {
+			latestEnterEvent[event.Student] = event
+		} else {
+			log.WithFields(log.Fields{
+				"event": event,
+			}).Errorln("invalid event type getting location visitors")
+		}
+	}
+
+	for student, leaveEvent := range latestLeaveEvent {
+		enterEvent, found := latestEnterEvent[student]
 		if !found {
+			// if there is no corresponding enter event continue
 			continue
 		}
-
-		// check if they were leaving
-		if leaveEvent.EventType != database.EventLeave {
+		// student entered later than enter event (probably still in location)
+		if leaveEvent.Time.Before(enterEvent.Time) {
 			continue
-		}
-
-		enterEvent, found := database.DB.GetMostRecentEventBetweenWithType(student.Ref(), minTime, maxTime, database.EventEnter)
-		if !found {
-			log.WithField("leaveEvent", leaveEvent).Errorf("Found a logout leaveEvent without a corresponding login leaveEvent")
-			enterEvent.Time = leaveEvent.Time
 		}
 
 		visits = append(visits, LocationVisit{
-			Student:   student.Ref(),
+			Student:   student,
 			LeaveTime: leaveEvent.Time,
 			EnterTime: enterEvent.Time,
 		})
