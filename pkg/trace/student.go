@@ -6,12 +6,11 @@ import (
 	"trace/pkg/database"
 )
 
-// IsStudentAtLocation returns true and the corresponding event if a student is at a location at a specific time
-func IsStudentAtLocation(studentRef database.StudentRef, locationRef database.LocationRef, time time.Time) (bool, database.Event) {
+func IsStudentAtLocation(studentRef database.StudentRef, locationRef database.LocationRef, t time.Time) (bool, database.Event) {
 	location := locationRef.Get()
 
 	// Get the event between the time and time - the location timeout
-	lastEvent, found := database.DB.GetMostRecentEventBetween(studentRef, time.Add(location.Timeout * -1), time)
+	lastEvent, found := database.DB.GetMostRecentEventBetween(studentRef, t.Add(location.Timeout * -1), t)
 
 	if found && lastEvent.Location == locationRef {
 		switch lastEvent.EventType {
@@ -30,18 +29,26 @@ func IsStudentAtLocation(studentRef database.StudentRef, locationRef database.Lo
 
 // GetStudentsAtLocation returns a list of all students at a location at a specific time and the corresponding events.
 // For most cases, the time should just be time.Now()
-func GetStudentsAtLocation(locationRef database.LocationRef, time time.Time) ([]database.Student, []database.Event) {
+func GetStudentsAtLocation(locationRef database.LocationRef, t time.Time) ([]database.Student, []database.Event) {
 	// iterate through all students and check if each one is at the location
 
 	studentsAtLocation := make([]database.Student, 0)
 	events := make([]database.Event, 0)
 
-	students := database.DB.GetStudents()
+	location := locationRef.Get()
 
-	for _, student := range students {
-		atLocation, event := IsStudentAtLocation(database.StudentRef(student.ID), locationRef, time)
-		if atLocation {
-			studentsAtLocation = append(studentsAtLocation, student)
+	// all events in the time frame sorted from earliest to latest
+	allEvents := database.DB.GetAllEventsBetween(t.Add(location.Timeout * -1), t)
+
+	// the latest event for each student
+	studentEvents := make(map[database.StudentRef]database.Event)
+	for _, event := range allEvents {
+		studentEvents[event.Student] = event
+	}
+
+	for student, event := range studentEvents {
+		if event.EventType == database.EventEnter {
+			studentsAtLocation = append(studentsAtLocation, student.Get())
 			events = append(events, event)
 		}
 	}
