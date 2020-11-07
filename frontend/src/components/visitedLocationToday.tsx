@@ -50,7 +50,8 @@ function VisitTable({visits}: { visits: LocationVisit[] }) {
             <tr>
                 <th>Name</th>
                 <th>Left</th>
-                <th>Time Left</th>
+                <th>Time In</th>
+                <th>Time Out</th>
                 <th>Time Spent Last Visit</th>
             </tr>
             </thead>
@@ -66,6 +67,7 @@ function VisitRow({visit}: { visit: LocationVisit }) {
     return <tr>
         <td>{visit.student.name}</td>
         <td>{moment(visit.leave_time).fromNow()}</td>
+        <td>{formatAMPM(visit.enter_time)}</td>
         <td>{formatAMPM(visit.leave_time)}</td>
         <td>{moment(visit.enter_time).from(visit.leave_time, true)}</td>
     </tr>
