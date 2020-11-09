@@ -52,7 +52,7 @@ func HandleScan(locationRef database.LocationRef, studentHandle string) (ev data
 	}
 	logrus.WithFields(logrus.Fields{
 		"studentName": student.Name, "locationName": location.Name,
-	}).Debugf("Student scanned %s the library", evName)
+	}).Debugf("Student scanned %s a location", evName)
 
 	return event, nil, nil
 }
