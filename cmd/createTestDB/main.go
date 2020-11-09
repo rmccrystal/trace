@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
+	"time"
 	"trace/pkg/database"
 )
 
@@ -38,6 +39,7 @@ func main() {
 
 	for _, locationName := range locations {
 		db.CreateLocation(&database.Location{
+			Timeout: 4 * time.Hour,
 			Name: locationName,
 		})
 	}
