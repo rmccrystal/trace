@@ -66,12 +66,6 @@ func GetStudentLocation(studentRef database.StudentRef, time time.Time) (locatio
 	}
 
 	location = lastEvent.Location.Get()
-
-	// check lastEvent time
-	if lastEvent.Time.Add(location.Timeout).Before(time) {
-		return database.Location{}, false
-	}
-
 	found = true
 	return
 }
