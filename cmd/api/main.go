@@ -6,6 +6,7 @@ import (
 	"time"
 	"trace/pkg/api"
 	"trace/pkg/database"
+	"trace/pkg/trace"
 )
 
 func main() {
@@ -28,6 +29,9 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Could not connect to database: %s", err)
 	}
+
+	// see the function docs for more info (trace/timeout.go)
+	go trace.TimeoutEventThread()
 
 	if err := api.Listen(addr, &config); err != nil {
 		logrus.Fatalf("Failed to listen on %s: %s", addr, err)

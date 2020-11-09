@@ -12,13 +12,52 @@ func AddTimeoutEvents(startTime time.Time, currentTime time.Time) {
 	events := database.DB.GetAllEventsBetween(startTime, currentTime)
 
 	// create and populate latest leave and enter event
-	latestLeaveEvent := make(map[database.StudentRef]database.Event)
-	latestEnterEvent := make(map[database.StudentRef]database.Event)
+	latestLeaveEvents := make(map[database.StudentRef]database.Event)
+	latestEnterEvents := make(map[database.StudentRef]database.Event)
+
+	// we have to get locations by id from the database a lot so instead
+	// i'm making a cache of locations
+	_locations := database.DB.GetLocations()
+	locations := make(map[database.LocationRef]database.Location)
+	for _, location := range _locations {
+		locations[location.Ref()] = location
+	}
+
 	for _, event := range events {
 		if event.EventType == database.EventLeave {
-			latestLeaveEvent[event.Student] = event
+			latestLeaveEvents[event.Student] = event
+			// basically what we're doing here is checking what the current
+			// latest enter event is once we hit a leave event and if the event
+			// is more than the time of the leave event + the location timeout,
+			// create a new leave event
+			enterEvent, ok := latestEnterEvents[event.Student]
+			if !ok {
+				continue
+			}
+
+			location, ok := locations[enterEvent.Location]
+			if !ok {
+				log.WithField("event", enterEvent).Errorf("could not find location adding timeout events")
+				continue
+			}
+
+			if enterEvent.Time.Add(location.Timeout).Before(event.Time) {
+				newEvent := database.Event{
+					Location:  enterEvent.Location,
+					Student:   enterEvent.Student,
+					Time:      enterEvent.Time.Add(location.Timeout - 1),
+					EventType: database.EventLeave,
+					Source:    database.EventSourceAutoLeave,
+				}
+				database.DB.CreateEvent(&newEvent)
+
+				log.WithFields(log.Fields{
+					"sourceEvent": enterEvent,
+					"newEvent": newEvent,
+				}).Debugln("created implicit leave event")
+			}
 		} else if event.EventType == database.EventEnter {
-			latestEnterEvent[event.Student] = event
+			latestEnterEvents[event.Student] = event
 		} else {
 			log.WithFields(log.Fields{
 				"event": event,
@@ -26,17 +65,49 @@ func AddTimeoutEvents(startTime time.Time, currentTime time.Time) {
 		}
 	}
 
-	for student, enterEvent := range latestEnterEvent {
-		if leaveEvent, found := latestLeaveEvent[student]; found {
-			// student has already left
+	// add the final implicit logout events to the present time
+	for student, enterEvent := range latestEnterEvents {
+		location, ok := locations[enterEvent.Location]
+		if !ok {
+			log.WithField("event", enterEvent).Errorf("could not find location adding timeout events")
+			continue
+		}
+
+		// if there is an exit event after this enter event we can continue
+		if leaveEvent, ok := latestLeaveEvents[student]; ok {
 			if leaveEvent.Time.After(enterEvent.Time) {
 				continue
 			}
 		}
 
-		// if the timeout time is before the current time, we should add an auto leave event
-		if enterEvent.Time.Add(enterEvent.Location.Get().Timeout).Before(currentTime) {
+		if enterEvent.Time.Add(location.Timeout).Before(currentTime) {
+			newEvent := database.Event{
+				Location:  enterEvent.Location,
+				Student:   enterEvent.Student,
+				Time:      enterEvent.Time.Add(location.Timeout - 1),
+				EventType: database.EventLeave,
+				Source:    database.EventSourceAutoLeave,
+			}
+			database.DB.CreateEvent(&newEvent)
 
+			log.WithFields(log.Fields{
+				"sourceEvent": enterEvent,
+				"newEvent": newEvent,
+			}).Debugln("created implicit leave event")
 		}
+	}
+}
+
+// TimeoutEventThread should be ran whenever trace is ran... it basically creates
+// timeout events whenever a student times out of a location. run this on a new goroutine
+// using `go TimeoutEventThread()`
+func TimeoutEventThread() {
+	log.Debugf("TimeoutEventThread started")
+	for {
+		now := time.Now()
+		AddTimeoutEvents(now.Add(-6 * time.Hour), now)
+
+		// run every 30 seconds
+		time.Sleep(3 * time.Second)
 	}
 }

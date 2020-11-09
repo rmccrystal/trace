@@ -38,7 +38,7 @@ func GetStudentsAtLocation(locationRef database.LocationRef, t time.Time) ([]dat
 	location := locationRef.Get()
 
 	// all events in the time frame sorted from earliest to latest
-	allEvents := database.DB.GetAllEventsBetween(t.Add(location.Timeout * -1), t)
+	allEvents := database.DB.GetAllEventsBetween(t.Add(location.Timeout * -2 - 1 * time.Hour), t)
 
 	// the latest event for each student
 	studentEvents := make(map[database.StudentRef]database.Event)
