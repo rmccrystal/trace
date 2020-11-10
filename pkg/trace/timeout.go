@@ -26,6 +26,13 @@ func AddTimeoutEvents(startTime time.Time, currentTime time.Time) {
 	for _, event := range events {
 		if event.EventType == database.EventLeave {
 			latestLeaveEvents[event.Student] = event
+
+			// this code doesn't really work atm for some reason but we don't really need it...
+			// basically what it does is parse earlier events and add implicit logout events
+			// if a student was in a location for too long but as long as the rest of the code
+			// is kept running it should do the same thing
+
+			/*
 			// basically what we're doing here is checking what the current
 			// latest enter event is once we hit a leave event and if the event
 			// is more than the time of the leave event + the location timeout,
@@ -56,6 +63,7 @@ func AddTimeoutEvents(startTime time.Time, currentTime time.Time) {
 					"newEvent": newEvent,
 				}).Debugln("created implicit leave event")
 			}
+			 */
 		} else if event.EventType == database.EventEnter {
 			latestEnterEvents[event.Student] = event
 		} else {
