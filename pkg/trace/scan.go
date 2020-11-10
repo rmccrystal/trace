@@ -23,8 +23,6 @@ func HandleScan(locationRef database.LocationRef, studentHandle string) (ev data
 
 	studentAtLocation, _ := IsStudentAtLocation(student.Ref(), location.Ref(), time.Now())
 
-	// TODO: Create an implicit logout event when someone logs in again to a new location
-
 	var eventType database.EventType
 	// If the student is in the location, they are leaving, otherwise they are entering
 	if studentAtLocation {
