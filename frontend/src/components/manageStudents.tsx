@@ -194,6 +194,7 @@ function StudentRow({student, onUpdate}: { student: TraceStudent, onUpdate: () =
             confirmButtonText={`Delete ${student.name}`}
             icon="trash"
             intent="danger"
+            canEscapeKeyCancel={true}
             onCancel={() => setDeleteOpen(false)}
             onConfirm={() => {
                 setDeleteOpen(false);

@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, {ReactNode, useState} from "react";
 import {Button, Dialog, FormGroup, H2, InputGroup} from "@blueprintjs/core";
-import {createStudents, editStudent, TraceStudent} from "../api";
+import {createStudents, deleteStudent, editStudent, TraceStudent} from "../api";
 import {onCatch, onCatchPrefix} from "./util";
 
 export function CreateStudentDialogue({isOpen, handleClose}: { isOpen: boolean, handleClose: (studentCreated: boolean) => void }) {
@@ -23,9 +23,9 @@ export function CreateStudentDialogue({isOpen, handleClose}: { isOpen: boolean, 
         className="pb-0"
     >
         <StudentEdit
-            student={{name: "", email: "", id: "", student_handles: ["", ""]}}
+            student={{name: "", email: "", id: "", student_handles: [""]}}
             onSubmit={onSubmit}
-            title="Create Student"
+            heading={<H2>Create Student</H2>}
             submitButtonText="Create"
             submitButtonLoading={loading}
         />
@@ -37,10 +37,19 @@ export function EditStudentDialogue({isOpen, handleClose, student}: { isOpen: bo
 
     const onSubmit = (modifiedStudent: TraceStudent) => {
         setLoading(true);
-        editStudent(student.id, modifiedStudent)
-            .then(() => handleClose(true))
+        // This is a little bit of a hack atm, but it works. for some reason
+        // modifying students doesn't work on the backend
+        // FIXME
+        deleteStudent(student.id)
+            .then(() => createStudents([modifiedStudent])
+                .then(() => handleClose(true))
+                .catch(onCatch)
+                .finally(() => setLoading(false)))
             .catch(onCatch)
-            .finally(() => setLoading(false))
+        // editStudent(student.id, modifiedStudent)
+        //     .then(() => handleClose(true))
+        //     .catch(onCatch)
+        //     .finally(() => setLoading(false))
     }
 
     return <Dialog
@@ -54,17 +63,20 @@ export function EditStudentDialogue({isOpen, handleClose, student}: { isOpen: bo
         <StudentEdit
             student={student}
             onSubmit={onSubmit}
-            title={`Edit ${student.name}`}
+            heading={<>
+                <H2 className="mb-1">Edit {student.name}</H2>
+                <p className="bp3-monospace-text bp3-text-muted mb-3">id: {student.id}</p>
+            </>}
             submitButtonText="Save"
             submitButtonLoading={loading}
         />
     </Dialog>;
 }
 
-export function StudentEdit({student, onSubmit, submitButtonText, title, submitButtonLoading}: {
+export function StudentEdit({student, onSubmit, submitButtonText, heading, submitButtonLoading}: {
     student: TraceStudent,
     onSubmit: (student: TraceStudent) => void
-    title: string,
+    heading: ReactNode,
     submitButtonText: string
     submitButtonLoading: boolean
 }) {
@@ -72,11 +84,11 @@ export function StudentEdit({student, onSubmit, submitButtonText, title, submitB
 
     const onSubmitButtonClick = () => {
         // remove empty handles
-        onSubmit({...localStudent, student_handles: student.student_handles.filter(handle => handle !== "")});
+        onSubmit({...localStudent, student_handles: localStudent.student_handles.filter(handle => handle != "")});
     }
 
     return <div className="m-8">
-        <H2 className="mb-4">{title}</H2>
+        {heading}
         <FormGroup label="Name">
             <InputGroup value={localStudent.name}
                         placeholder="Student's name"
