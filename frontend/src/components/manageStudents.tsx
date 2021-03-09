@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {
+    Alert,
     Button,
     Card,
     FileInput,
@@ -10,10 +11,10 @@ import {
     Spinner,
     Tooltip
 } from "@blueprintjs/core";
-import {createStudents, getStudents, TraceStudent} from "../api";
+import {createStudents, deleteStudent, getStudents, TraceStudent} from "../api";
 import {onCatch} from "./util";
 import Papa from "papaparse";
-import {CreateStudentDialogue} from "./studentDialogue";
+import {CreateStudentDialogue, EditStudentDialogue} from "./studentDialogue";
 
 export default function ManageStudents({...props}: ICardProps) {
     const [students, setStudents] = useState<TraceStudent[]>([]);
@@ -51,13 +52,18 @@ export default function ManageStudents({...props}: ICardProps) {
                 onClick={() => setCreateStudentDialogueOpen(true)}>
                 Create Student
             </Button>
-            <CreateStudentDialogue isOpen={createStudentDialogueOpen} handleClose={() => setCreateStudentDialogueOpen(false)}/>
+            <CreateStudentDialogue isOpen={createStudentDialogueOpen} handleClose={studentCreated => {
+                setCreateStudentDialogueOpen(false)
+                if (studentCreated) {
+                    updateStudents();
+                }
+            }}/>
         </div>
         {
             loading
                 ? <Spinner className="m-8"/>
                 : <Card className="p-0 w-full" elevation={1}>
-                    <StudentTable students={students} className="w-full" condensed striped bordered/>
+                    <StudentTable students={students} className="w-full" onUpdate={updateStudents} condensed striped bordered/>
                 </Card>
         }
     </Card>;
@@ -135,8 +141,9 @@ function StudentCSVUpload({onUpload}: { onUpload: (students: TraceStudent[]) => 
 export function StudentTable({
                                  students,
                                  loading,
+                                 onUpdate,
                                  ...props
-                             }: { students: TraceStudent[], loading?: boolean } & IHTMLTableProps) {
+                             }: { students: TraceStudent[], loading?: boolean, onUpdate: () => void } & IHTMLTableProps) {
     if (loading) {
         return <Spinner className="m-8"/>;
     }
@@ -151,18 +158,65 @@ export function StudentTable({
                     <span>Handles <Icon style={{verticalAlign: "top"}} icon="help" iconSize={10}/></span>
                 </Tooltip>
             </th>
+            <th/>
         </tr>
         </thead>
         <tbody>
-        {students.map(student => <StudentRow student={student} key={student.id}/>)}
+        {students.map(student => <StudentRow student={student} key={student.id} onUpdate={onUpdate}/>)}
         </tbody>
     </HTMLTable>;
 }
 
-function StudentRow({student}: { student: TraceStudent }) {
-    return <tr>
-        <td>{student.name || "-"}</td>
-        <td>{student.email || "-"}</td>
-        <td>{student.student_handles?.join(", ") || "-"}</td>
-    </tr>;
+function StudentRow({student, onUpdate}: { student: TraceStudent, onUpdate: () => void }) {
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const handleDeleteClick = () => {
+        setDeleteOpen(true);
+    }
+
+    const onDelete = () => {
+        setDeleteLoading(true)
+        deleteStudent(student.id)
+            .then(onUpdate)
+            .catch(onCatch)
+            .finally(() => setDeleteLoading(false));
+    }
+
+
+    const [editOpen, setEditOpen] = useState(false);
+    const onEditClick = () => {
+        setEditOpen(true);
+    }
+
+    return <>
+        <Alert
+            cancelButtonText="Cancel"
+            confirmButtonText={`Delete ${student.name}`}
+            icon="trash"
+            intent="danger"
+            onCancel={() => setDeleteOpen(false)}
+            onConfirm={() => {
+                setDeleteOpen(false);
+                onDelete();
+            }}
+            isOpen={deleteOpen}
+        >
+            <p>Are you sure you want to delete student <b>{student.name}</b>? This action cannot be undone.</p>
+        </Alert>
+        <EditStudentDialogue isOpen={editOpen} student={student} handleClose={(studentEdited) => {
+            setEditOpen(false);
+            if(studentEdited) {
+                onUpdate();
+            }
+        }} />
+        <tr>
+            <td>{student.name || "-"}</td>
+            <td>{student.email || "-"}</td>
+            <td>{student.student_handles?.join(", ") || "-"}</td>
+            <td className="w-1 whitespace-no-wrap" style={{padding: "0.2rem"}}>
+                <Button small minimal icon="edit" intent="primary" onClick={onEditClick}/>
+                <Button small minimal icon="trash" intent="danger" onClick={handleDeleteClick} loading={deleteLoading}/>
+            </td>
+        </tr>
+    </>;
 }

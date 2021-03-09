@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 	"trace/pkg/database"
@@ -109,7 +110,10 @@ func UpdateStudent(c *gin.Context) {
 		return
 	}
 
-	_ = database.DB.UpdateStudent(student.ID, &newStudent)
+	success := database.DB.UpdateStudent(student.ID, &newStudent)
+	if !success {
+		log.Panicf("Could not find student with id %s", student.ID)
+	}
 
 	Success(c, http.StatusOK, student)
 }

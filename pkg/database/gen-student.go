@@ -149,7 +149,12 @@ func (db *Database) DeleteStudent(id primitive.ObjectID) bool {
 
 // UpdateStudent finds a student by its ID and updates it
 func (db *Database) UpdateStudent(id primitive.ObjectID, newStudent *Student) bool {
-	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": newStudent})
+	//result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.M{"$set": *newStudent})
+	a := db.Collections.Students.FindOne(nil, bson.M{"_id": id})
+	if a.Err() != nil {
+		panic(a.Err())
+	}
+	result := db.Collections.Locations.FindOneAndUpdate(nil, bson.M{"_id": id}, bson.D{{"$set", bson.D{{"name", "SKDJLJLKS"}}}})
 	err := result.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

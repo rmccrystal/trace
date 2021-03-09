@@ -82,6 +82,14 @@ export async function createStudents(students: TraceStudent[]): Promise<TraceStu
     return await sendApiRequest("POST", "students", students);
 }
 
+export async function editStudent(id: string, newStudent: TraceStudent): Promise<null> {
+    return await sendApiRequest("PATCH", `student/${id}`, newStudent);
+}
+
+export async function deleteStudent(student_id: string): Promise<null> {
+    return await sendApiRequest("DELETE", `student/${student_id}`)
+}
+
 export interface LocationVisit {
     student: TraceStudent,
     leave_time: Date,
