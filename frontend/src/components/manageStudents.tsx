@@ -1,8 +1,19 @@
 import React, {useEffect, useState} from "react";
-import {Card, FileInput, HTMLTable, ICardProps, Icon, IHTMLTableProps, Spinner, Tooltip} from "@blueprintjs/core";
+import {
+    Button,
+    Card,
+    FileInput,
+    HTMLTable,
+    ICardProps,
+    Icon,
+    IHTMLTableProps,
+    Spinner,
+    Tooltip
+} from "@blueprintjs/core";
 import {createStudents, getStudents, TraceStudent} from "../api";
 import {onCatch} from "./util";
 import Papa from "papaparse";
+import {CreateStudentDialogue} from "./studentDialogue";
 
 export default function ManageStudents({...props}: ICardProps) {
     const [students, setStudents] = useState<TraceStudent[]>([]);
@@ -14,8 +25,8 @@ export default function ManageStudents({...props}: ICardProps) {
                 setStudents(students);
                 setLoading(false);
             })
-            .catch(onCatch)
-    }
+            .catch(onCatch);
+    };
 
     useEffect(() => {
         updateStudents();
@@ -27,11 +38,20 @@ export default function ManageStudents({...props}: ICardProps) {
                 updateStudents();
             })
             .catch(onCatch);
-    }
+    };
+
+    const [createStudentDialogueOpen, setCreateStudentDialogueOpen] = useState(false);
 
     return <Card className="m-8 max-w-3xl w-full" {...props}>
-        <div className="flex flex-row gap-2 mb-4">
-            <StudentCSVUpload onUpload={onStudentUpload} />
+        <div className="flex flex-row flex-basis gap-2 mb-4">
+            <StudentCSVUpload onUpload={onStudentUpload}/>
+            <Button
+                icon="add"
+                className="flex-1"
+                onClick={() => setCreateStudentDialogueOpen(true)}>
+                Create Student
+            </Button>
+            <CreateStudentDialogue isOpen={createStudentDialogueOpen} handleClose={() => setCreateStudentDialogueOpen(false)}/>
         </div>
         {
             loading
@@ -40,16 +60,16 @@ export default function ManageStudents({...props}: ICardProps) {
                     <StudentTable students={students} className="w-full" condensed striped bordered/>
                 </Card>
         }
-    </Card>
+    </Card>;
 }
 
-function StudentCSVUpload({onUpload}: {onUpload: (students: TraceStudent[]) => void}) {
-    const handleError = onCatch
+function StudentCSVUpload({onUpload}: { onUpload: (students: TraceStudent[]) => void }) {
+    const handleError = onCatch;
 
     const handleStudentUploadChange: React.FormEventHandler<HTMLInputElement> = event => {
-        const file = (event.target as any).files[0]
+        const file = (event.target as any).files[0];
         if (!file) {
-            return
+            return;
         }
 
         const reader = new FileReader();
@@ -59,17 +79,17 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: TraceStudent[]) => v
         reader.onload = ev => {
             if (!ev.target) {
                 handleError("Error reading CSV file");
-                return
+                return;
             }
 
             const text = ev.target.result?.toString();
             if (!text) {
                 handleError("No file content found");
-                return
+                return;
             }
-            if (!text.split('\n')[0].startsWith("name,email,handle")) {
+            if (!text.split("\n")[0].startsWith("name,email,handle")) {
                 handleError("CSV header must be name,email,handle");
-                return
+                return;
             }
 
             // We can't pass arrays as CSV so we will have to use a single handle
@@ -84,37 +104,41 @@ function StudentCSVUpload({onUpload}: {onUpload: (students: TraceStudent[]) => v
 
             if (results.errors.length > 0) {
                 handleError(`Encountered one or more errors parsing the CSV file: ${
-                    results.errors.map(e => e.message).join(', ')
+                    results.errors.map(e => e.message).join(", ")
                 }`);
-                return
+                return;
             }
 
             const csvStudents = results.data;
             if (csvStudents.length === 0) {
-                handleError("No students were found in the CSV")
-                return
+                handleError("No students were found in the CSV");
+                return;
             }
 
             const students: TraceStudent[] = csvStudents.map(st => {
                 st.student_handles = [st.handle];
                 return st as TraceStudent;
-            })
+            });
 
             onUpload(students);
-        }
-    }
+        };
+    };
 
     return <FileInput
         text="Upload students from CSV (header should be name,email,handle)"
-        className="w-full"
+        className="flex-1"
         inputProps={{accept: ".csv"}}
         onInputChange={handleStudentUploadChange}
-    />
+    />;
 }
 
-export function StudentTable({students, loading, ...props}: { students: TraceStudent[], loading?: boolean } & IHTMLTableProps) {
+export function StudentTable({
+                                 students,
+                                 loading,
+                                 ...props
+                             }: { students: TraceStudent[], loading?: boolean } & IHTMLTableProps) {
     if (loading) {
-        return <Spinner className="m-8"/>
+        return <Spinner className="m-8"/>;
     }
 
     return <HTMLTable {...props}>
@@ -132,7 +156,7 @@ export function StudentTable({students, loading, ...props}: { students: TraceStu
         <tbody>
         {students.map(student => <StudentRow student={student} key={student.id}/>)}
         </tbody>
-    </HTMLTable>
+    </HTMLTable>;
 }
 
 function StudentRow({student}: { student: TraceStudent }) {
@@ -140,5 +164,5 @@ function StudentRow({student}: { student: TraceStudent }) {
         <td>{student.name || "-"}</td>
         <td>{student.email || "-"}</td>
         <td>{student.student_handles?.join(", ") || "-"}</td>
-    </tr>
+    </tr>;
 }
