@@ -60,6 +60,8 @@ func Listen(addr string, config *Config) error {
 	api.PATCH("student/:id", controllers.UpdateStudent)
 	api.POST("student/:id/logout", controllers.LogoutStudent)
 
+	api.POST("trace/:id", controllers.GenerateContactReport)
+
 	// Serve React frontend
 	r.Use(static.Serve("/", static.LocalFile("frontend/build", false)))
 	r.NoRoute(func(c *gin.Context) {

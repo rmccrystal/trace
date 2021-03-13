@@ -1,4 +1,5 @@
 import axios from 'axios';
+import assert from "assert";
 
 
 // sendApiRequest sends a request to the origin with the method and relative path to the api.
@@ -54,8 +55,8 @@ export interface TraceStudent {
     student_handles: string[]
 }
 
-export async function getStudentsAtLocation(location_id: string): Promise<{student: TraceStudent, time: Date}[]> {
-    let data = await sendApiRequest<{student: TraceStudent, time: Date}[]>("GET", `location/${location_id}/students`);
+export async function getStudentsAtLocation(location_id: string): Promise<{ student: TraceStudent, time: Date }[]> {
+    let data = await sendApiRequest<{ student: TraceStudent, time: Date }[]>("GET", `location/${location_id}/students`);
     data.map((st) => {
         st.time = new Date(st.time);
     });
@@ -87,7 +88,41 @@ export async function editStudent(id: string, newStudent: TraceStudent): Promise
 }
 
 export async function deleteStudent(student_id: string): Promise<null> {
-    return await sendApiRequest("DELETE", `student/${student_id}`)
+    return await sendApiRequest("DELETE", `student/${student_id}`);
+}
+
+
+export interface ContactReport {
+    target_student: TraceStudent,
+    start_date: Date,
+    end_date: Date,
+    contacts: {
+        student: TraceStudent,
+        seconds_together: number
+    }[]
+}
+
+export async function generateContactReport(
+    student_id: string,
+    start_time: Date,
+    end_time: Date
+): Promise<ContactReport> {
+    console.log(start_time, end_time);
+    console.log({start_time: start_time?.getTime() / 1000, end_time: end_time?.getTime() / 1000})
+    let data = await sendApiRequest<ContactReport>(
+        "POST",
+        `trace/${student_id}`,
+        {start_time: Math.round(start_time?.getTime() / 1000), end_time: Math.round(end_time?.getTime() / 1000)});
+
+    data.start_date = start_time;
+    // assert(data.start_date.getSeconds() == start_time?.getSeconds());
+    data.end_date = end_time;
+    // assert(data.end_date.getSeconds() == end_time?.getSeconds());
+
+    data.contacts = data.contacts.filter(({student, seconds_together}) => seconds_together !== 0);
+    data.contacts.sort((a, b) => (a.seconds_together < b.seconds_together) ? 1 : -1);
+
+    return data;
 }
 
 export interface LocationVisit {
@@ -95,6 +130,7 @@ export interface LocationVisit {
     leave_time: Date,
     enter_time: Date,
 }
+
 export async function getLocationVisits(location_id: string): Promise<LocationVisit[]> {
     let data = await sendApiRequest<LocationVisit[]>("GET", `location/${location_id}/visits`)
     data.map(el => {

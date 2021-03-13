@@ -15,6 +15,7 @@ import {createStudents, deleteStudent, getStudents, TraceStudent} from "../api";
 import {onCatch} from "./util";
 import Papa from "papaparse";
 import {CreateStudentDialogue, EditStudentDialogue} from "./studentDialogue";
+import {useHistory} from "react-router-dom";
 
 export default function ManageStudents({...props}: ICardProps) {
     const [students, setStudents] = useState<TraceStudent[]>([]);
@@ -182,6 +183,11 @@ function StudentRow({student, onUpdate}: { student: TraceStudent, onUpdate: () =
             .finally(() => setDeleteLoading(false));
     }
 
+    let history = useHistory();
+    const onTraceClick = () => {
+        history.push(`trace/${student.id}`);
+    }
+
 
     const [editOpen, setEditOpen] = useState(false);
     const onEditClick = () => {
@@ -215,8 +221,9 @@ function StudentRow({student, onUpdate}: { student: TraceStudent, onUpdate: () =
             <td>{student.email || "-"}</td>
             <td>{student.student_handles?.join(", ") || "-"}</td>
             <td className="w-1 whitespace-no-wrap" style={{padding: "0.2rem"}}>
-                <Button small minimal icon="edit" intent="primary" onClick={onEditClick}/>
-                <Button small minimal icon="trash" intent="danger" onClick={handleDeleteClick} loading={deleteLoading}/>
+                <Button small minimal icon="graph" intent="success" onClick={onTraceClick} title="Contact trace" />
+                <Button small minimal icon="edit" intent="primary" onClick={onEditClick} title="Edit"/>
+                <Button small minimal icon="trash" intent="danger" onClick={handleDeleteClick} loading={deleteLoading} title="Delete"/>
             </td>
         </tr>
     </>;

@@ -10,6 +10,7 @@ import ManageStudents from "./components/manageStudents";
 import CurrentlyInLocation from "./components/currentlyInLocation";
 import NewLocationPrompt from "./components/newLocationPrompt";
 import VisitedLocationToday from "./components/visitedLocationToday";
+import ContactTracing from "./components/contactTracing";
 
 function App() {
     useEffect(() => {
@@ -68,6 +69,7 @@ function App() {
                     <VisitedLocationToday location={location!} elevation={1}/>
                 </Route>
                 <Route path="/students" component={() => <ManageStudents elevation={1}/>}/>
+                <Route path="/trace/:id?" component={() => <ContactTracing />} />
                 <Redirect from="*" to="/scan"/>
             </Switch>
             <div className="mt-auto text-center mb-3 bp3-text-muted">
