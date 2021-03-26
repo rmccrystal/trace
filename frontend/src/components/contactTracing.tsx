@@ -76,7 +76,7 @@ function ContactList({id: student_id}: { id: string }) {
             <tbody>
             {report.contacts.map(({student, seconds_together}) => <tr>
                 <td>{student.name}</td>
-                <td>{seconds_together}</td>
+                <td>{Math.round(seconds_together / 60)}</td>
             </tr>)}
             </tbody>
         </HTMLTable>

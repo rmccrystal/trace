@@ -14,7 +14,7 @@ func main() {
 
 	addr := envOr("LISTEN_ADDRESS", "0.0.0.0:8080")
 	mongoUri := envOr("MONGO_URI", "mongodb://localhost")
-	databaseName := envOr("DATABASE_NAME", "dev")
+	databaseName := envOr("DATABASE_NAME", "prod")
 
 	config := api.Config{
 		DatabaseConfig: database.Config{
